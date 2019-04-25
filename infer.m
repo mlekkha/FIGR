@@ -1,19 +1,40 @@
 function [grn, diagnostics] = infer (opts, xntg,tt,numGenes)
-
-fprintf ('================ infer() =======================\n');
-
-% INPUTS:
-%   runParams   struct of parameters
-%   xntg        (1:numNuclei, 1:numTimepoints, 1:numGenes+numExternals)
-%   nuclei      (1:numNuclei)
-%   tt          (1:numTimepoints)
-% RETURNS:
-%   Tgg         (1:numGenes, 1:numGenes+numExternals+1)
-
-
-% Extract optional pars from struct
-% numGenes could be an optional param; if not supplied, then
-% numGenes=numRegulators
+%
+% This function implements the FIGR algorithm:
+% 1. On/off states are guessed for each gene, in each nucleus, at each timepoint.
+% 2. Regulatory parameters {T,h} are inferred using logistic regression.
+% 3. Kinetic parameters {R,lambda,D} are inferred using linear regression
+%      ('slope' method) or or methods as described in the paper.
+%
+%
+% ARGUMENTS:
+%   xntg                        gene expression trajectories x(n,t,g) as 3D array
+%   tt                          timepoints as column vector
+%   opts.slopethresh            velocity threshold v^c in Eq. (10)
+%   opts.exprthresh             expression threshold x^c in Eq. (10)
+%   opts.splinesmoothing        1=no smoothing, 0=extreme smoothing
+%   opts.Rld_method             'slope', 'slope_nodiff', 'conc', or 'kink'
+%   opts.Rld_tsafety            PARAMETER USED BY SLOPE METHOD
+%   opts.minborder_expr_ratio   PARAMETER USED BY KINK METHOD
+%   opts.spatialsmoothing       PARAMETER USED BY KINK METHOD
+%   opts.geneNames              cell array (unimportant; mainly for plotting)
+% RETURN VALUES:
+%   grn.Tgg            genetic interconnect matrix
+%   grn.hg             thresholds
+%   grn.Rg             maximum synthesis rates
+%   grn.lambdag        degradation rates
+%   grn.Dg             diffusion constants
+%   diagnostics.yntg   on/off states y(n,t,g)
+%
+% NOTES:
+%   Indices generally run from n=1:N, t=1:T, g=1:G where
+%   N=number of nuclei, T=number of timepoints, and G=number of genes.  
+%   N, T, and G are determined from the dimensions of the "xntg" array.
+%
+%   For the Drosophila dataset, xntg contains data for 7 genes.
+%   The infer routine is called with numGenes=4 to indicate that
+%     we only wish to infer regulatory parameters acting on the first 4
+%     genes; the last 3 genes are upstream regulators.
 
 if isfield (opts, 'geneNames')
     geneNames = opts.geneNames;
@@ -88,6 +109,8 @@ for g = 1:numGenes
             Rld_inferred = [];
         case 'slope'
             Rld_inferred(g,:) = infer_Rld_from_slope(g);
+        case 'slope_nodiff'
+            Rld_inferred(g,:) = infer_Rl_from_slope(g);
         case 'conc'
             Rld_inferred(g,:) = infer_Rl_from_conc(g);
         case 'kink'
@@ -111,6 +134,93 @@ grn.Dg      = Rld_inferred(:,3);
 return;
 
 
+
+
+    function kinetic_params = infer_Rl_from_slope(g)
+        
+        % YLL 2019-2-4: made this simplified version
+        tsafety = 3;            % this could be an option in 'opts'
+        
+        nmax = numNuclei;
+        tmax = numTimepoints;
+        gmax = numGenes+numExternals;
+        yntgFilt = yntg;
+        for n=1:nmax
+            for t=1+tsafety:tmax-tsafety
+                % FILTER OUT DATAPOINTS WHOSE SLOPES ARE
+                % NOT PART OF A RUN OF 3 OR MORE OF THE SAME
+                for t2=t-tsafety : t+tsafety
+                    if (yntg(n,t2,g) ~= yntg(n,t,g))
+                        yntgFilt(n,t,g) = 0;
+                    end
+                end
+            end % for t
+        end % for n
+        
+        xj = reshape (  xntg(:,:,g)'  ,[],1);  % xj = flatten (xtn)
+        yj = reshape (  yntg(:,:,g)'  ,[],1);  % yj = flatten (ytn)
+        yjFilt = reshape (  yntgFilt(:,:,g)'  ,[],1);
+        vj = reshape (  vnt'  ,[],1);          % vj = flatten (vtn)
+        
+        %======== Construct the matrix Mji = [thetaj, -xj] for lsq
+        thetaj = max (yj, 0);
+        Mji = [thetaj, -xj];  % j=equation index, i=parameter index
+        %======== Filter out datapoints close to switching events
+        MjiFilt = Mji (yjFilt ~= 0, :);
+        vjFilt = vj (yjFilt ~= 0);
+        %======== Perform regression
+        %======== This gives 3x1 col vec [R ; lambda]
+        kinetic_params = lsqnonneg (MjiFilt, vjFilt);
+        R      = kinetic_params(1);
+        lambda = kinetic_params(2);
+        D      = 0;  % populate with zeroes
+        kinetic_params = [R ; lambda ; D];
+        
+        if opts.debug > 1
+            figure(1);
+            set (gcf, 'Units', 'pixels', 'Toolbar','None','MenuBar','None');
+            if (g==1); clf;  end;
+            
+            % ASSUMES THAT grn.Tgg and grn.hg have already been populated
+            % by infer()
+            
+            %============ COLUMN 2 ROW g: (x1, x2) SPACE
+            %======== Plot concentration vs time.  YLL 2019-1-25
+            subaxis (gmax,5, 2,g); hold on;
+            plot (reshape(1:tmax*nmax, tmax, nmax), reshape(xj, tmax, nmax), 'k-');
+            %now add the symbols            
+            h1=plot (xj, 'kx');
+            h2=plot (find(yjFilt>0), xj(yjFilt>0), '*', 'color', [0 .5 0]);
+            h3=plot (find(yjFilt<0), xj(yjFilt<0), 'o', 'color', [1 0 0]);
+            ylabel ('$x$', 'Interpreter','latex', 'Rotation', 0);
+            xlim([0 tmax*nmax]);
+            axis fill;
+           % legend([h2 h3], 'ON', 'OFF');
+            %plot trajs first with lines
+            if (g==1); title('$x_g$ versus $t + t_{max} n$', 'interpreter', 'latex'); end;
+            
+            %============ COLUMN 3 ROW g: 
+            %======== Plot "velocity" vs concentration.
+            %======== Expect v = R - lambda x   for "on" points.
+            %======== Expect v =   - lambda x   for "off" points.
+            subaxis (gmax,5, 3,g); hold on;
+            h1=plot(xj(yj > 0), vj(yj > 0), 'kx');
+            h2=plot(xj(yjFilt > 0), vj(yjFilt > 0), '*', 'color', [0 .5 0]);
+            h3=plot(xj(yj < 0), vj(yj < 0), 'kx');
+            h4=plot(xj(yjFilt < 0), vj(yjFilt < 0), 'o', 'color', [1 0 0]);
+            fplot ( @(x) (R - lambda*x), [0 2], '--', 'color', [0 .5 0]);
+            fplot ( @(x) (0 - lambda*x), [0 2], '--', 'color', [1 0 0]);
+            ylabel('$v$', 'interpreter', 'latex', 'Rotation', 0); 
+            xlabel('$x$', 'interpreter', 'latex');
+            ylim ([-2 2]);
+            axis fill;
+           %
+           % legend([h2 h4], 'ON', 'OFF');
+            if (g==1); title('$v_g$ versus $x_g$', 'interpreter', 'latex'); end;
+        end
+        
+        
+    end % from infer_Rl_from_slope()
 
 
     function kinetic_params = infer_Rld_kink_approx(g)
@@ -717,8 +827,8 @@ return;
         %======== Filter the matrix and s for noisy points
         MjiFilt = Mji (yjFilt ~= 0, :);
         vjFilt = vj (yjFilt ~= 0);
-        fprintf(1, 'Number of equations after filtering: %d\n', ...
-            size(MjiFilt, 1));
+        %fprintf(1, 'Number of equations after filtering: %d\n', ...
+        %    size(MjiFilt, 1));
         
         %======== Perform regression
         %======== This gives 3x1 col vec [R ; lambda ; D]
@@ -761,61 +871,3 @@ return;
 
 end % from infer()
 
-% Saved from infer_Rld_kink_approx(). Identifying "on" domains using the
-% sign of the derivative
-%    for j=1:numNuclei
-%
-%            % If the point is "on"
-%            if (yn(j) > 0)
-%
-%                % start the run if we're not in a run
-%                if run_start == -1
-%                    run_start = j;
-%                end
-%
-%                % if we're in a run and this is the last nucleus, end
-%                % the run
-%                if (run_start ~= -1) & (j == numNuclei)
-%                    run_end = j;
-%                end
-%
-%            end
-%
-%            % If the point is "off"
-%            if (yn(j) < 0)
-%
-%                % If we're in a run, then end it; do nothing if we're not
-%                % in a run
-%                if (run_start ~= -1)
-%                    run_end = j-1;
-%                end
-%
-%            end
-%
-%            % if the run has ended, check whether the domain contains the
-%            % global maximum
-%            if (run_end ~= -1) & (run_end > run_start+1)
-%
-%                run_max = -1.0*fnmin(fncmb(spline_by_x, -1.0), ...
-%                                    [nuclei(run_start),nuclei(run_end)]);
-%
-%                if (run_max == maxconc)
-%
-%                    break;
-%
-%                end
-%
-%
-%            end % from if a run has ended
-%
-%            % Reset the run indicators, if the run has ended
-%            if (run_end ~= -1)
-%
-%                run_start = -1;
-%                run_end = -1;
-%
-%            end
-%
-%
-%    end % from loop over nuclei
-%

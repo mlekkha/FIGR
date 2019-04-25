@@ -1,7 +1,6 @@
 function [xntg] = computeTrajs (opts,grn,Xntg,tt)
 
-
-% This functions solves the differential equations
+% This function solves the differential equations
 %
 %   d/dt x_ntg = R_g g( sum_f T_gf x_ntf + h_g) - lambda_g x_ntg
 %                       + D_g(x_(n+1)tg + x_(n-1)tg - 2 x_ntg)
@@ -9,18 +8,21 @@ function [xntg] = computeTrajs (opts,grn,Xntg,tt)
 % where x_ntg for n=1:numGenes                        are provided only at t=0
 % and   x_ntg for n=numGenes+1:numGenes+numExternals  are provided at all t values.
 %
-% INPUTS:
-%   runParams paths, unfold options etc. in a struct
-%   T_gf      genetic interconnect matrix
-%   h_g       promoter thresholds
-%   X_ntg     full time series for all genes ("facts")
-%   R_g       promoter strengths
-%   lambda_g  protein half-lives
-%   D_g       protein diffusion constants
-%
+% ARGUMENTS:
+%   grn.Tgg            genetic interconnect matrix
+%   grn.hg             thresholds
+%   grn.Rg             maximum synthesis rates
+%   grn.lambdag        degradation rates
+%   grn.Dg             diffusion constants
+%   Xntg(:,1,1:F)      initial conditions for all regulators (int & ext)
+%   Xntg(:,:,G+1:F)    trajectories for all external regulators
+%   tt                 timepoints at which to store the trajectories
 % RETURNS:
-%   tt        time points
-%   x_ntg     full time series for genes i=1:N (recomputed by solving ODEs)
+%   xntg(:,:,:)        trajectories for all genes
+%
+% NOTES:
+%   See Example Program 2 for an illustration of Xntg and xntg 
+%    when upstream regulators are present.
 %
 
 if opts.debug > 0
