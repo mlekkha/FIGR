@@ -78,9 +78,25 @@ xntg(1,:,:) = [...
 
 
 %======== DISPLAY grnSA AND grnFIGR FOR COMPARISON
+% Since Tgg and hg can only be determined to within a multiplicative
+% factor, normalize so that the length of the Tg vector is 1.
+
+% Normalize actual GRN grn
+for g=1:numGenes
+    fac = norm(grn.Tgg(g,:));
+    grn.Tgg(g,:) = grn.Tgg(g,:) / fac;
+    grn.hg(g,:)  = grn.hg(g,:) / fac;
+end
 disp ('GRN parameters of toy model: ');
 disp (struct2table (grn));
 disp ('');
+
+% Normalize inferred GRN grnFIGR
+for g=1:numGenes
+    fac = norm(grnFIGR.Tgg(g,:));
+    grnFIGR.Tgg(g,:) = grnFIGR.Tgg(g,:) / fac;
+    grnFIGR.hg(g,:)  = grnFIGR.hg(g,:) / fac;
+end
 disp ('GRN parameters inferred using FIGR: ');
 disp (struct2table (grnFIGR));
 
