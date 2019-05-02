@@ -25,23 +25,48 @@ function [xntg] = computeTrajs (opts,grn,Xntg,tt)
 %    when upstream regulators are present.
 %
 
+% global ODE options structure
+global ODEopts;
+
 if opts.debug > 0
     fprintf ('======== computeTrajs() ========\n');
     fprintf ('======== VALIDATING INPUTS ========\n');
 end
 
+% set the problem parameters
 numNuclei     = size (Xntg, 1);
 numTimepoints = size (Xntg, 2);
 numGenes      = numel (grn.Rg);
 numExternals  = size (Xntg,3) - numGenes;
 
+% declare vectors and matrices
+
+% for storing time points
+tts = nan (numTimepoints, 1);
+
+% intermediate 3D matrix for storing data
+Xgnt = nan (numGenes, numNuclei, numTimepoints);
+
+% flattened array for storing data
+Xkt = nan (numGenes*numNuclei, numTimepoints);
+
+% flattened computed solutions
+xtk = nan (numTimepoints, numGenes*numNuclei);
+
+% computed solutions in intermediate 3D matrix
+xtgn = nan (numTimepoints, numGenes, numNuclei);
+
+% 3D matrix for storing (and returning) computed solutions
+xntg = nan (numNuclei, numTimepoints, numGenes);
+
+
 if opts.debug > 0
-    fprintf ('tt = \n %s\n'    , mat2str (tt') );
-    fprintf ('numNuclei          = %d \n',numNuclei);
-    fprintf ('numTimepoints      = %d \n',numTimepoints);
-    fprintf ('numGenes           = %d \n',numGenes);
-    fprintf ('numExternals       = %d \n',numExternals);
-    fprintf ('size(Xntg)         = %d %d %d \n', size(Xntg));
+%    fprintf ('tt = \n %s\n'    , mat2str (tt') );
+    fprintf ('numNuclei          = %f \n',numNuclei);
+    fprintf ('numTimepoints      = %f \n',numTimepoints);
+    fprintf ('numGenes           = %f \n',numGenes);
+    fprintf ('numExternals       = %f \n',numExternals);
+%    fprintf ('size(Xntg)         = %d %d %d \n', size(Xntg));
 end
 
 assert ( isequal ( size(grn.Tgg    ), [numGenes   numGenes+numExternals] ) );
@@ -98,14 +123,18 @@ Xkt = reshape(Xgnt, numGenes*numNuclei, numTimepoints);
 roc = RateofChange(opts, grn, ExtInpInterp);
 
 % set ODE opts
-odeOpts = odeset('AbsTol', opts.ODEAbsTol);
-
-% solverfunc
-solver = str2func(opts.ODEsolver);
+odeOpts = odeset('AbsTol', 1e-3);
 
 % solve; note that in the returned solution, time varies with row not
 % with column as in Xkt
-[tts, xtk] = solver(roc, tt, Xkt(:,1), odeOpts);
+if strcmp(opts.ODEsolver, 'ode45')
+    [tts, xtk] = ode45(roc, tt, Xkt(:,1), ODEopts);
+elseif strcmp(opts.ODEsolver, 'ode23')
+    [tts, xtk] = ode23(roc, tt, Xkt(:,1), ODEopts);
+else
+    error('Unknown solver %s',...
+                opts.ODEsolver);
+end
 
 % reshape solution to return xntg
 xtgn = reshape(xtk, [numel(tts), numGenes, numNuclei]);

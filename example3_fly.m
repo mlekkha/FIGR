@@ -21,43 +21,71 @@ fprintf (['\n'...
 % - COULD ADD REFINEMENT EVENTUALLY
 % - IS THERE A WAY TO SHARE ONE COLOR BAR FOR ALL HEATMAPS?
 
+%======== Define global structs for options and ODE options 
+global opts;
+global ODEopts;
 
-%======== SET OPTIONS FOR COMPUTETRAJS ========
-opts.synthesisfunction = 'synthesis_sigmoid_sqrt';
-opts.ODEAbsTol = 1e-2;                          % ODE solver tolerance
-opts.ODEsolver = 'ode45';                       % 4th order Runge-Kutta
+%======== SET OPTIONS ========
 opts.debug = 0;                                 % verbosity level (0-3)
+
 %======== SET OPTIONS FOR FIGR ========
 opts.slopethresh = 1.0;  % YL 2018-11-6  -----need to see what Manu used last
 opts.exprthresh = 100.0; % YL 2018-11-6
 opts.splinesmoothing = 0.01;
 opts.spatialsmoothing = 0.5;
 opts.minborder_expr_ratio = 0.01;
-opts.Rld_method = 'slope';
+opts.Rld_method = 'kink';
 opts.Rld_tsafety = 3;
+
+%======== SET OPTIONS FOR COMPUTETRAJS ========
+opts.synthesisfunction = 'synthesis_sigmoid_sqrt';
+opts.ODEAbsTol = 1e-3;                          % ODE solver tolerance
+opts.ODEsolver = 'ode45';                       % 4th order Runge-Kutta
+
+%======== set the ODE options
+ODEopts = odeset('AbsTol', opts.ODEAbsTol);
+
+
 numGenes = 4;  % 4 genes are "internal"; 3 genes are upstream regulators
+
+%======== Start timer
+tic;
 
 %======== READ EXPERIMENTAL TRAJECTORIES xntg(:,1,:) AND TIMEPOINTS tt =======
 xntgEXPT = readArray ('fly_xntg.txt');  % xntgEXPT is now a 58x9x7 array
 tt       = readArray ('fly_tt.txt');
 
+%======== Print status
+disp ('Read data... ');
+disp ('Starting FIGR... ');
+
 %======== INFER GRN PARAMETERS grnFIGR
 [grnFIGR, diagnostics] = infer (opts, xntgEXPT, tt, numGenes);
 yntgEXPT = diagnostics.yntg;
 
-%======== MANU MIGHT WANT TO PUT 'REFINE GRN BY NELDER-MEAD' HERE ========
+%======== Print status
+disp ('FIGR complete... ');
+disp ('Starting refinement... ');
 
+%======== REFINE GRN BY NELDER-MEAD ========
+xntgFLAT = reshape(xntgEXPT, 522, 7);
+grnREF = refineFIGRParams_mex(grnFIGR, xntgFLAT, tt);
 
+%======== Print status
+disp ('Nelder-Mead refinement complete... ');
+
+%======== Print time taken
+fprintf(1, 'Total time elapsed: %f\n', toc);
 
 %======== RECOMPUTE TRAJECTORIES xntg ========
-[xntgFIGR] = computeTrajs (opts, grnFIGR, xntgEXPT, tt);
+[xntgREF] = computeTrajs (opts, grnREF, xntgEXPT, tt);
 
 %======== DISPLAY grnSA AND grnFIGR FOR COMPARISON
-disp ('GRN parameters inferred using FIGR: ');
-disp ('grnFIGR = ');
-disp (struct2table (grnFIGR));
-disp ('grnFIGR.Tgg = ');
-tmp = grnFIGR.Tgg;
+disp ('GRN parameters inferred using FIGR and refined with Nelder-Mead: ');
+disp ('grnREF = ');
+disp (struct2table (grnREF));
+disp ('grnREF.Tgg = ');
+tmp = grnREF.Tgg;
 
 opts.geneNames = {'H','K','G','N','B','C','T'};  % HARDWIRED
 disp (array2table (tmp, 'RowNames', opts.geneNames(1:numGenes), 'VariableNames', opts.geneNames));
@@ -76,7 +104,7 @@ for g=1:4
     colorbar ('southoutside');
     %-------- PLOT RE-SIMULATED TRAJECTORIES AS HEATMAPS IN (n,t) PLANE --------
     subplot (2, 4, g+4); hold on;
-    imagesc (xntgFIGR(:,:,g)', [0 225]); 
+    imagesc (xntgREF(:,:,g)', [0 225]); 
     xlabel ('n'); 
     ylabel ('t'); 
     title ([opts.geneNames{g} ' (resimulated)']);

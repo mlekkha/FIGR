@@ -27,6 +27,10 @@ opts.splinesmoothing = 1.00;       % 1=none, 0=extreme smoothing
 opts.Rld_method = 'slope_nodiff';  % inference method for kinetic parameters
 opts.Rld_tsafety = 3;              % points to ignore near switching events
 
+%======== Define global struct for ODE options and set it up
+global ODEopts;
+ODEopts = odeset('AbsTol', opts.ODEAbsTol);
+
 %======== SETUP GENE REGULATORY NETWORK PARAMETERS IN grn STRUCT ========
 grn.Tgg     = ...
     [0      +0.01   -1  ;...

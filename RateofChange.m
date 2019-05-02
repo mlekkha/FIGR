@@ -1,4 +1,4 @@
-function fh_roc = RateofChange(runParams, grn, ExtInpInterp)
+function fh_roc = RateofChange(opts, grn, ExtInpInterp)
 
 % Returns handle to nested function that computes the rate of change
 % according to the gene circuit equations
@@ -6,9 +6,6 @@ function fh_roc = RateofChange(runParams, grn, ExtInpInterp)
 %    d/dt x_ntg = R_g g( sum_f T_gf x_ntf + h_g) - lambda_g x_ntg
 %                       + D_g(x_(n+1)tg + x_(n-1)tg - 2 x_ntg)
 %
-
-% which synthesis function we should use
-synthesis_f = str2func(runParams.synthesisfunction);
 
 numGenes = numel(grn.Rg);                  % G
 numRegulators = size(grn.Tgg, 2);          % F
@@ -26,7 +23,11 @@ Dg = grn.Dg;
 if (numExternals > 0)
     tt         = ExtInpInterp.tt;
     xk_ext_dat = ExtInpInterp.xk_ext_dat;
-end
+else
+    tt = 0;
+    xk_ext_dat = 0;
+end    
+
 
 fh_roc = @getRateofChange;
 
@@ -71,32 +72,89 @@ fh_roc = @getRateofChange;
 
     function vk = getRateofChange(t, xk)   % THE LHS IS "dx/dt"
         
-        %---- "INTERNAL" GENE CONCENTRATIONS xgn
         numEqns = numel(xk);
         numNuclei = numEqns/numGenes;
+
+        % initialize arrays
+
+        %---- "INTERNAL" GENE CONCENTRATIONS xgn
         xgn = reshape (xk, [numGenes numNuclei]);
-        
+
+        % concentrations for interior product with Tgf
+        xfn = nan (numGenes+numExternals, numNuclei);
+
+        % accumulates rate of change
+        vgn = nan (numGenes, numNuclei);
+
+        % flattened rate of change to return
+        vk = nan (numEqns, 1);
+ 
+        % flux from diffusion
+        qgn = nan (numGenes, numNuclei);
+
+        % external input concentrations
+        wgn = nan (numExternals, numNuclei);
+
+        % flattened external input concentrations
+        xk_ext = nan (numExternals*numNuclei, 1);
+
         %---- "EXTERNAL" GENE CONCENTRATIONS wgn
         if (numExternals > 0)
             xk_ext = interp1(tt, xk_ext_dat', t)';
             wgn = reshape (xk_ext, [numExternals numNuclei]);
+
+            % include both internal and external concentrations for Tgf*xf
+            xfn = [xgn; wgn];      
         else
             wgn = zeros(0, numNuclei);
+
+            % only internal concentrations for Tgf*xf
+            xfn = xgn;      
         end
+
+        % Flux Dg*(x_(n) - x_(n+1))
+        % NOT using implicit expansion since MATLAB Coder does not support
+        % it
+        qgn = repmat(Dg,1,numNuclei) .* (xgn - circshift (xgn, numNuclei-1, 2));  % rotate LEFT in "n"
+
+        qgn(:,numNuclei) = zeros(numGenes, 1); % NO FLUX FROM LAST NUCLEUS TO FIRST ONE
         
-        xfn = [xgn; wgn];      % ALL GENE CONCENTRATIONS xfn        
+        % Synthesis
+        % Since arrayfun not supported by MATLAB Coder,
+        % evaluate synthesis in each nucleus separately
+        for j=1:numNuclei
+
+            for k=1:numGenes
+
+                % which synthesis function we should use
+                % can't use variable function handles since MATLAB code 
+                % generation does support it
+                if strcmp(opts.synthesisfunction, 'synthesis_sigmoid_sqrt')
+                    vgn(k,j) = Rg(k) * synthesis_sigmoid_sqrt(Tgf(k,:) * xfn(:,j) + hg(k));
+                elseif strcmp(opts.synthesisfunction, 'synthesis_heaviside')
+                    vgn(k,j) = Rg(k) * synthesis_heaviside(Tgf(k,:) * xfn(:,j) + hg(k));
+                else
+                    error('Unknown synthesis function %s',...
+                                opts.synthesisfunction);
+                end
+   
+            end
+            
+        end
+
+
+        % Diffusion
+        % second term is Dg*(x_(n-1) - x_(n)), third is Dg*(x_(n) - x_(n+1))
+        vgn = vgn + circshift (qgn, 1, 2) - qgn;            
+
+        % Degradation
+        % NOT using implicit expansion since MATLAB Coder does not support
+        % it
+        vgn = vgn - repmat(lambdag,1,numNuclei) .* xgn;             
+
+        % flatten to return
+        vk = reshape (vgn, numEqns, 1);
         
-        qgn = Dg .* (xgn - circshift (xgn, numNuclei-1, 2));  % rotate LEFT in "n"
-        
-        qgn(:,numNuclei) = 0; % NO FLUX FROM NUCLEUS 58 TO NUCLEUS 1
-        
-        vgn = Rg .* arrayfun(synthesis_f, Tgf * xfn + hg);  % SYNTHESIS
-        
-        vgn = vgn + circshift (qgn, 1, 2) - qgn;            % DIFFUSION
-        
-        vgn = vgn - lambdag .* xgn;                         % DEGRADATION
-        
-        vk = reshape (vgn, [numEqns 1]);
     end % from getRateofChange()
 
 end % from RateofChange()
