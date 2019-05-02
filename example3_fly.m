@@ -24,6 +24,8 @@ fprintf (['\n'...
 %======== Define global structs for options and ODE options 
 global opts;
 global ODEopts;
+global optimopts;
+                        
 
 %======== SET OPTIONS ========
 opts.debug = 0;                                 % verbosity level (0-3)
@@ -69,7 +71,26 @@ disp ('Starting refinement... ');
 
 %======== REFINE GRN BY NELDER-MEAD ========
 xntgFLAT = reshape(xntgEXPT, 522, 7);
-grnREF = refineFIGRParams_mex(grnFIGR, xntgFLAT, tt);
+
+% set optimization options for refinement
+packed_paramvec = packParams(grnFIGR, numGenes);
+optimopts = optimset( 'Display', 'Iter', ...
+                      'MaxFunEvals', 200*length(packed_paramvec), ...
+                      'MaxIter', 200*length(packed_paramvec));
+                        
+% check if MEX exists for this platform. Run the mex function if true
+% otherwise run interpreted (but slower) MATLAB .m code
+if (exist('refineFIGRParams_mex') == 3)
+    disp('MEX file for refinement found. Running compiled code...');
+    grnREF = refineFIGRParams_mex(grnFIGR, xntgFLAT, tt);
+else
+    fprintf(1, ['MEX file for refinement ' ...
+    '(refineFIGRParams_mex.{mexa64/mexmaci64/mexw64})' ...
+    ' not found.\n See README.md for instructions for compiling the ' ...
+    ' MEX file.\n\n Running interpreted (but slower) .m code...']);
+    grnREF = refineFIGRParams(grnFIGR, xntgFLAT, tt);
+end    
+
 
 %======== Print status
 disp ('Nelder-Mead refinement complete... ');

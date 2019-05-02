@@ -25,5 +25,12 @@ opts = struct(  'debug', 0, ...
 global ODEopts;
 ODEopts = odeset('AbsTol', 1e-3);
 
+% declare optimization options for refinement
+global optimopts;
+optimopts = optimset( 'Display', 'Iter', ...
+                      'MaxFunEvals', 20000, ...
+                      'MaxIter', 20000);
+                        
+                        
 % generate code                
 codegen -report refineFIGRParams.m

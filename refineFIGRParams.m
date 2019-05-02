@@ -42,6 +42,9 @@ assert(all(size(tt) <= [100 1]));
 % global options
 global opts;
 
+% declare optimization options for refinement
+global optimopts;
+
 % "declare vectors/matrices"
 init_paramvec = nan (numel(grn.Tgg) + numel(grn.hg) + numel(grn.Rg) + ...
                         numel(grn.lambdag) + numel(grn.Dg), 1);
@@ -56,11 +59,6 @@ xntgEXPT = reshape(xntgFLAT, 58, 9, 7);
 [init_chisq, init_rms, fh_chisq, init_paramvec] = ...
                             initChiSquare(opts, grn, xntgEXPT, tt);
                             
-% optimization options
-optimopts = optimset('Display', 'iter', ...
-                            'MaxFunEvals', 200*length(init_paramvec), ...
-                            'MaxIter', 200*length(init_paramvec));
-                        
 [paramREF,scoreREF,exitflag,output] = ...
                             fminsearch(fh_chisq,init_paramvec,optimopts);
 
