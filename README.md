@@ -3,7 +3,7 @@
 Fast Inference of Gene Regulation - A supervised classification-based
 method for inferring dynamical models of gene regulatory networks.
 
-**Version 0.1**
+**Version 0.2**
 
 David Fehr, Manu, and Yen Lee Loh
 
