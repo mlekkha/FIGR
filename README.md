@@ -86,7 +86,7 @@ Function | Description
 
 Function | Description
 -------- | -----------
-`build_refineFIGRParams_MEX.m` | Build a MEX-file for `build_refineFIGRParams()` for a considerable speed-up
+`build_refineFIGRParams_MEX.m` | Build a MEX-file for `refineFIGRParams()` for a considerable speed-up
 
 ### Binary files
 
@@ -100,8 +100,8 @@ Function | Description
 
 Function | Description
 -------- | -----------
-`fly_xntg.txt` | Input data for *Drosophila* gap gene problem (see `example3_fly.m`.
-`fly_tt.txt` | Timepoints for *Drosophila* gap gene problem (see `example3_fly.m`.
+`fly_xntg.txt` | Input data for *Drosophila* gap gene problem (see `example3_fly.m`).
+`fly_tt.txt` | Timepoints for *Drosophila* gap gene problem (see `example3_fly.m`).
 
 ## INPUT DATA FORMAT
 
@@ -113,7 +113,7 @@ Two input files are needed:
     Fourth row contains the time points.
 
 1.  Gene expression data (e.g. `fly_xntg.txt`).
-    First row states number of dimensions (3) of the timepoint array.
+    First row states number of dimensions (3) of the gene expression data array.
     Second-fourth rows state the number of elements in each dimension.
     
     First dimension: space/cells.
@@ -183,6 +183,7 @@ Two input files are needed:
 ### User-set variables
 
 Variable | Description | Possible values
+-------- | ----------- | ---------------
 `numGenes` | Number of non-external genes | >= 1 
 
 There are three **global** options structures that control FIGR behavior.
