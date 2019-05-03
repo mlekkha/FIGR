@@ -20,22 +20,18 @@ global ODEopts;
 global optimopts;
                         
 
-%======== SET OPTIONS ========
-opts.debug = 0;                                 % verbosity level (0-3)
-
-%======== SET OPTIONS FOR FIGR ========
-opts.slopethresh = 1.0;  % YL 2018-11-6  -----need to see what Manu used last
-opts.exprthresh = 100.0; % YL 2018-11-6
-opts.splinesmoothing = 0.01;
-opts.spatialsmoothing = 0.5;
-opts.minborder_expr_ratio = 0.01;
-opts.Rld_method = 'kink';
-opts.Rld_tsafety = 3;
-
-%======== SET OPTIONS FOR COMPUTETRAJS ========
-opts.synthesisfunction = 'synthesis_sigmoid_sqrt';
-opts.ODEAbsTol = 1e-3;                          % ODE solver tolerance
-opts.ODEsolver = 'ode45';                       % 4th order Runge-Kutta
+%======== SET OPTIONS (see README.md for description) ========
+opts = struct(  'debug', 0, ...                 
+                'slopethresh', 1.0, ...         
+                'exprthresh', 100.0, ...
+                'splinesmoothing', 0.01, ...
+                'spatialsmoothing', 0.5, ...
+                'minborder_expr_ratio', 0.01, ...
+                'Rld_method', 'kink', ...
+                'Rld_tsafety', 3, ...
+                'synthesisfunction', 'synthesis_sigmoid_sqrt', ...
+                'ODEAbsTol', 1e-3, ...
+                'ODEsolver', 'ode45');
 
 %======== set the ODE options
 ODEopts = odeset('AbsTol', opts.ODEAbsTol);
