@@ -11,15 +11,8 @@ fprintf (['\n'...
     'The top panels show the experimentally measured data for H,K,G,N, \n'...
     '  whereas the bottom panels show the data re-simulated from the FIGR-inferred GRN.\n'...
     '\n'...
-    'Although the re-simulated data do not match the experimental data perfectly,\n'...
-    '  FIGR gives good starting parameters for refinement (e.g., Nelder-Mead), as in the paper.\n'...
     '=======================================================================\n'...
     '\n']);
-
-% MANU TO DO:
-% - CORRECT slopethresh AND exprthresh BELOW 
-% - COULD ADD REFINEMENT EVENTUALLY
-% - IS THERE A WAY TO SHARE ONE COLOR BAR FOR ALL HEATMAPS?
 
 %======== Define global structs for options and ODE options 
 global opts;
@@ -108,28 +101,38 @@ disp (struct2table (grnREF));
 disp ('grnREF.Tgg = ');
 tmp = grnREF.Tgg;
 
-opts.geneNames = {'H','K','G','N','B','C','T'};  % HARDWIRED
+opts.geneNames = ...
+            {'Hunchback','Kruppel','Giant','Knirps','Bicoid','Caudal','Tailles'};  % HARDWIRED
 disp (array2table (tmp, 'RowNames', opts.geneNames(1:numGenes), 'VariableNames', opts.geneNames));
 
 %======== VISUALIZE RESULTS
 close all;
-set (gcf, 'Position', [0 0 1200 800], 'Toolbar','None','MenuBar','None');
+set (gcf, 'Position', [0 0 1200 600], 'Toolbar','None','MenuBar','None');
 colormap ('jet');
 for g=1:4
     %-------- PLOT EXPERIMENTAL TRAJECTORIES AS HEATMAPS IN (n,t) PLANE --------
     subplot (2, 4, g); hold on;
-    imagesc (xntgEXPT(:,:,g)', [0 225]); 
+    imagesc (flipud(xntgEXPT(:,:,g)'), [0 225]); 
     xlabel ('n'); 
     ylabel ('t'); 
     title ([opts.geneNames{g} ' (experimental)']);
-    colorbar ('southoutside');
+    ah = gca;
+    set(ah, 'XTick', [10:10:50], 'XTickLabel', [45:10:85]);
+    set(ah, 'YTick', [2:2:8], 'YTickLabel', [43.6:-13.5:3.1]);
+    if (g == 4)
+        oldpos = get(ah, 'Position');
+        cbh = colorbar(ah, 'Location', 'manual', ...
+          'Position', [oldpos(1)+oldpos(3)+0.01 oldpos(2) 0.01 oldpos(4)]);
+    end    
     %-------- PLOT RE-SIMULATED TRAJECTORIES AS HEATMAPS IN (n,t) PLANE --------
     subplot (2, 4, g+4); hold on;
-    imagesc (xntgREF(:,:,g)', [0 225]); 
+    imagesc (flipud(xntgREF(:,:,g)'), [0 225]); 
     xlabel ('n'); 
     ylabel ('t'); 
     title ([opts.geneNames{g} ' (resimulated)']);
-    colorbar ('southoutside');
+    ah = gca;
+    set(ah, 'XTick', [10:10:50], 'XTickLabel', [45:10:85]);
+    set(ah, 'YTick', [2:2:8], 'YTickLabel', [43.6:-13.5:3.1]);
     
 end
 return;
