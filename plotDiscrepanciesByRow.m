@@ -1,6 +1,9 @@
 function [] = plotDiscrepancies (runParams, debug)
 
-datadir = '~yenlee/genecircuits/';
+%datadir = '~yenlee/genecircuits/';
+
+%datadir = '';
+datadir = '~/code/glassmodels/';
 
 path (path(), '~/code/glassmodels/distributionPlot');
 
@@ -30,9 +33,12 @@ set (gcf, 'Units', 'centimeters', 'Position',[0 0 18 6],'Toolbar','None','MenuBa
 
 
 %========== ALL QUANTITIES, 2 genes, 10000 tmats, 100 nuclei ======================
+% DISCREPANCIES "discrep" ARE CALCULATED HERE, ON-THE-FLY
 subplot(1,2,1);
 grnTOY = dlmread ([datadir '2genes_10000tmats_100nuclei/grnTOY.dat']);
 grnCBI = dlmread ([datadir '2genes_10000tmats_100nuclei/grnCBI.dat']);
+%grnTOY = dlmread ([datadir '2genes_100tmats_30nuclei/grnTOY.dat']);
+%grnCBI = dlmread ([datadir '2genes_100tmats_30nuclei/grnCBI.dat']);
 discrepT = vecnorm(grnTOY(:,1:2) - grnCBI(:,1:2), 2, 2);
 discrep = [discrepT abs(grnTOY(:,3:5)-grnCBI(:,3:5))];
 distributionPlot (discrep, ...

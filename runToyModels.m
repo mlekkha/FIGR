@@ -67,7 +67,7 @@ mkdir (resultsDir);
 delete ([resultsDir '/TTheor.dat']); % prepare for this function to record
 delete ([resultsDir '/TInfer.dat']);
 delete ([resultsDir '/diagnostics.dat']);
-delete ([resultsDir '/discrep.dat']);
+%delete ([resultsDir '/discrep.dat']);
 
 
 
@@ -114,23 +114,25 @@ for m=1:numTMatrices
     infer (runParams,numGenes,numExternals,xntg,nuclei,tt, geneNames,debug);
         
     %======== NORMALIZE AND COMPARE
+    % YLL 2019-6-13: Don't calculate discrepancies here;
+    % do it when plotting, in plotDiscrepanciesByRow.m
     for g=1:numGenes       
  	    ThTheor = normr (Tgg(g,:));        	% normalize such that ||TTheor||=1
 		TTheor = ThTheor (:, 1:numGenes); 	% drop the h component
 	 	TTheor = normr (TTheor);  			% normalize AGAIN
 		if isnan(TggInfer(g,1)) 
 	        ThInfer = NaN (1,numGenes);  
-			discrep = NaN; 					% uninferrable
+			%discrep = NaN; 					% uninferrable
 		else
  	        ThInfer = normr (TggInfer(g,:));  	% normalize such that ||TInfer||=1
 			TInfer = ThInfer (:, 1:numGenes); 	% drop the h component
 			TInfer = normr (TInfer);			% normalize AGAIN
-	 		discrep = norm (TInfer - TTheor);   % distance between unit vectors      
+	 		%discrep = norm (TInfer - TTheor);   % distance between unit vectors      
 		end
 				
 		dlmwrite ([resultsDir '/TTheor.dat'], ThTheor, 'delimiter','\t', 'precision',8,'-append');
 		dlmwrite ([resultsDir '/TInfer.dat'], ThInfer, 'delimiter','\t', 'precision',8,'-append');
-		dlmwrite ([resultsDir '/discrep.dat'], discrep, 'delimiter','\t', '-append');
+		%dlmwrite ([resultsDir '/discrep.dat'], discrep, 'delimiter','\t', '-append');
     end
     dlmwrite ([resultsDir '/diagnostics.dat'], diagnostics, 'delimiter','\t', '-append');
 end
