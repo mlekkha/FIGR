@@ -12,7 +12,7 @@ fprintf ('\n');
 %======== User-supplied pars
 rng (12345);            % seed the random number generator reproducibly
 %rng ();  				% seed the random number generator irreproducibly
-numGenes     = 2;     	% hardwired for now
+numGenes     = 10;     	% hardwired for now
 numTMatrices = 100;  	% number of different circuit parameters to simulate
 numNuclei    = 30;     % number of "nuclei" or "initial conds"
 tt = (0: 0.05: 2)';     % timepoints
@@ -86,14 +86,6 @@ for m=1:numTMatrices
     grnCBIPACKED = [grnCBI.Tgg grnCBI.hg grnCBI.Rg grnCBI.lambdag grnCBI.Dg];
     writeMatrix (fidGRNTOY, grnPACKED);
     writeMatrix (fidGRNCBI, grnCBIPACKED);
-    
-    d1 = norm (grnCBI.Tgg(:) - grn.Tgg(:));  % flattened!
-    d2 = norm (grnCBI.hg - grn.hg);
-    d3 = norm (grnCBI.Rg - grn.Rg);
-    d4 = norm (grnCBI.lambdag - grn.lambdag);
-    %d5 = norm (grnCBI.Dg - grn.Dg);   % Don't include D
-    discrep = [d1 d2 d3 d4]; % row vector
-    writeMatrix (fidDISCREP, discrep);
 end
 
 function writeMatrix (fileID, matrix)
