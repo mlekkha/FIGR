@@ -12,9 +12,9 @@ fprintf ('\n');
 %======== User-supplied pars
 rng (12345);            % seed the random number generator reproducibly
 %rng ();  				% seed the random number generator irreproducibly
-numGenes     = 10;     	% hardwired for now
+numGenes     = 30;     	% hardwired for now
 numTMatrices = 100;  	% number of different circuit parameters to simulate
-numNuclei    = 30;     % number of "nuclei" or "initial conds"
+numNuclei    = 100;     % number of "nuclei" or "initial conds"
 tt = (0: 0.05: 2)';     % timepoints
 
 %======== Derived pars
@@ -32,11 +32,18 @@ opts.ODEAbsTol = 1e-4;
 opts.ODEsolver = 'ode45';
 
 resultsDir = sprintf ('%dgenes_%dtmats_%dnuclei/', numGenes,numTMatrices,numNuclei);
+if exist(resultsDir)
+    fprintf ('  ERROR: Directory %s already exists!', resultsDir);
+    fprintf ('  Use rm -R from commandline to cleanup previous data! \n');
+    return;
+end
+
 mkdir (resultsDir);
 fidGRNTOY = fopen ([resultsDir '/grnTOY.dat'], 'w');
 fidGRNCBI = fopen ([resultsDir '/grnCBI.dat'], 'w');
 fidDISCREP = fopen ([resultsDir '/discrep.dat'], 'w');
 
+tic;
 for m=1:numTMatrices
     fprintf ('======== Working on T-matrix no. m=%d ========\n', m);
     
@@ -87,6 +94,14 @@ for m=1:numTMatrices
     writeMatrix (fidGRNTOY, grnPACKED);
     writeMatrix (fidGRNCBI, grnCBIPACKED);
 end
+
+%======== WRITING TIMING INFO
+wallTime = toc;
+fprintf ('Time taken: %f\n', wallTime);
+dlmwrite ([resultsDir '/timing.dat'], wallTime);
+return;
+
+
 
 function writeMatrix (fileID, matrix)
 for r=1:size(matrix,1)
