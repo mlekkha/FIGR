@@ -12,10 +12,13 @@ fprintf ('\n');
 %======== User-supplied pars
 rng (12345);            % seed the random number generator reproducibly
 %rng ();  				% seed the random number generator irreproducibly
-numGenes     = 30;     	% hardwired for now
+numGenes     = 10;     	% hardwired for now
 numTMatrices = 100;  	% number of different circuit parameters to simulate
-numNuclei    = 100;     % number of "nuclei" or "initial conds"
-tt = (0: 0.05: 2)';     % timepoints
+numNuclei    = 50;     % number of "nuclei" or "initial conds"
+tt = (0: 0.05: 2)';     % 41 timepoints
+%tt = (0 : 0.05 : 0.5)';     % 11 timepoints, good way
+%tt = (0 : 0.05 : 1)';     % 21 timepoints, good way
+%tt = (0 : 0.05 : 0.5)';     % 11 timepoints, good way
 
 %======== Derived pars
 numExternals = 0;
@@ -31,7 +34,7 @@ opts.synthesisfunction = 'synthesis_heaviside';
 opts.ODEAbsTol = 1e-4;
 opts.ODEsolver = 'ode45';
 
-resultsDir = sprintf ('%dgenes_%dtmats_%dnuclei/', numGenes,numTMatrices,numNuclei);
+resultsDir = sprintf ('%dgenes_%dtmats_%dnuclei_%dtimepts/', numGenes,numTMatrices,numNuclei,numTimepoints);
 if exist(resultsDir)
     fprintf ('  ERROR: Directory %s already exists!', resultsDir);
     fprintf ('  Use rm -R from commandline to cleanup previous data! \n');

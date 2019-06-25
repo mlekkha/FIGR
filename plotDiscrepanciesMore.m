@@ -33,6 +33,53 @@ ah1 = gca;
 
 
 
+
+%========== EFFECT OF NUM TIMEPOINTS ======================
+%So maybe we do three cases: 1) N_t=41, N=100, 2) N_t=11, N=50, and 3) N_t=21, N=10? 
+%I don?t know that right answer but some combination that represents 
+%?ideal?, ?data poor? and ?reasonable? situations.
+close all;
+figure(1); clf;
+set (gcf, 'Units', 'centimeters', 'Position',[0 0 80 40],'Toolbar','None','MenuBar','None');
+
+
+%dat1 = calcDiscrepancies (20, 100, 100);
+%dat1 = calcDiscrepancies (10, 100, 100);
+dat1 = calcDiscrepancies2 (10, 100, 100, 41);
+%dat2 = calcDiscrepancies2 (20, 100, 100, 21);
+dat2 = calcDiscrepancies2 (10, 100, 100, 21);
+%dat3 = calcDiscrepancies2 (20, 100, 100, 11);
+%dat4 = calcDiscrepancies2 (20, 100, 50, 21);
+dat3 = calcDiscrepancies2 (10, 100, 50, 21);
+dat4 = calcDiscrepancies2 (10, 100, 100, 11);
+
+i=0;
+i=i+1;distributionPlot (dat1, 'xValues',i, 'histOpt',0, 'divFactor',500, 'color',[.5 .5 .8], 'showMM',6);
+i=i+1;distributionPlot (dat2, 'xValues',i, 'histOpt',0, 'divFactor',500, 'color',[.5 .5 .8], 'showMM',6);
+i=i+1;distributionPlot (dat3, 'xValues',i, 'histOpt',0, 'divFactor',500, 'color',[.5 .5 .8], 'showMM',6);
+i=i+1;distributionPlot (dat4, 'xValues',i, 'histOpt',0, 'divFactor',500, 'color',[.5 .5 .8], 'showMM',6);
+xticklabels ({ ...
+    '$\matrix{G=10 \cr N=100 \cr N_T=41}$'  , ...
+    '$\matrix{G=10 \cr N=100 \cr N_T=21}$'  , ...
+    '$\matrix{G=10 \cr N=50 \cr N_T=21}$'  , ...
+    '$\matrix{G=10 \cr N=50 \cr N_T=11}$'  , ...
+    ''   });
+xticks (1:4);
+set (gca, 'TickLabelInterpreter', 'latex');
+ylabel ('\delta_T'); xlim ([0.5 4.+.5]); ylim ([-0.05 2.0]);
+text(-0.16,1,'B', 'FontSize', 12, 'FontWeight', 'bold');
+ah2 = gca;
+
+
+
+
+
+
+
+return;
+
+
+
 %========== deltaT, 2 genes, 10000 tmats, 10/100/1000 nuclei ======================
 % Only consider discrepancies in T; ignore h, R, lambda.
 % It's best to accumulate the distributionPlots one at a time.
@@ -41,22 +88,22 @@ subplot(1,2,2);
 %dat1 = calcDiscrepancies (2, 10000, 10);
 %dat2 = calcDiscrepancies (2, 10000, 30);
 %dat6 = calcDiscrepancies (10, 100, 30);
+
 dat1 = calcDiscrepancies (2, 10000, 100);
 dat2 = calcDiscrepancies (4, 1600, 100);
 dat3 = calcDiscrepancies (6, 1600, 100);
 dat4 = calcDiscrepancies (15, 100, 100);
 dat5 = calcDiscrepancies (20, 100, 100);
+dat6 = calcDiscrepancies (30, 100, 100);
 dat7 = calcDiscrepancies (40, 100, 100);
 dat8 = calcDiscrepancies (50, 100, 100);
-
-%return;
 
 distributionPlot (dat1, 'xValues',1, 'histOpt',0, 'divFactor',500, 'color',[.5 .5 .8], 'showMM',6);
 distributionPlot (dat2, 'xValues',2, 'histOpt',0, 'divFactor',500, 'color',[.5 .5 .8], 'showMM',6);
 distributionPlot (dat3, 'xValues',3, 'histOpt',0, 'divFactor',500, 'color', [.5 .5 .8], 'showMM',6);
 distributionPlot (dat4, 'xValues',4, 'histOpt',0, 'divFactor',100, 'color',[.5 .5 .8], 'showMM',6);
 distributionPlot (dat5, 'xValues',5, 'histOpt',0, 'divFactor',100, 'color',[.5 .5 .8], 'showMM',6);
-%distributionPlot (dat6, 'xValues',6, 'histOpt',0, 'divFactor',100, 'color',[.5 .5 .8], 'showMM',6);
+distributionPlot (dat6, 'xValues',6, 'histOpt',0, 'divFactor',100, 'color',[.5 .5 .8], 'showMM',6);
 distributionPlot (dat7, 'xValues',7, 'histOpt',0, 'divFactor',100, 'color',[.5 .5 .8], 'showMM',6);
 distributionPlot (dat8, 'xValues',8, 'histOpt',0, 'divFactor',100, 'color',[.5 .5 .8], 'showMM',6);
 
@@ -68,7 +115,7 @@ xticklabels ({ ...
     '$\matrix{N=100 \cr G=6}$'  , ...
     '$\matrix{N=100 \cr G=15}$'  , ...
     '$\matrix{N=100 \cr G=20}$'  , ...
-    '$\matrix{N=100 \cr G=??}$'  , ...
+    '$\matrix{N=100 \cr G=30}$'  , ...
     '$\matrix{N=100 \cr G=40}$'  , ...
     '$\matrix{N=100 \cr G=50}$'  , ...
     ''   });
@@ -90,6 +137,17 @@ ah2 = gca;
 %======================= CALCULATE DISCREPANCIES FROM GRN PAR FILES ======================
 function discreps = calcDiscrepancies (genes, tmats, nuclei)
 datadir = sprintf ('%dgenes_%dtmats_%dnuclei/', genes, tmats, nuclei);
+grnTOY = dlmread ([datadir '/grnTOY.dat']);
+grnCBI = dlmread ([datadir '/grnCBI.dat']);
+discreps = vecnorm(grnTOY(:,1:genes) - grnCBI(:,1:genes), 2, 2);
+rows = numel(discreps);
+nans = sum(isnan(discreps));
+frac = nans/rows;
+fprintf ('%d tmats \t%d nuclei\t%d genes:\t\t %d rows,\t%d NaNs,\t%f fracNaNs\n', tmats, nuclei, genes, rows, nans, frac);
+end
+%======================= CALCULATE DISCREPANCIES FROM GRN PAR FILES ======================
+function discreps = calcDiscrepancies2 (genes, tmats, nuclei, numtimepoints)
+datadir = sprintf ('%dgenes_%dtmats_%dnuclei_%dtimepts/', genes, tmats, nuclei, numtimepoints);
 grnTOY = dlmread ([datadir '/grnTOY.dat']);
 grnCBI = dlmread ([datadir '/grnCBI.dat']);
 discreps = vecnorm(grnTOY(:,1:genes) - grnCBI(:,1:genes), 2, 2);
