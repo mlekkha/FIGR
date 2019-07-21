@@ -2,6 +2,230 @@
 addpath ('~/lib/glassmodels/subaxis');
 close all;
 
+%=========== plot heatmaps of data and gap gene fits 
+%==== PLOT xntgEXPT
+genesymbols = {'Hunchback', 'Kr\"uppel', 'Giant', 'Knirps'};
+hfig = figure ('Units', 'centimeters');
+set (hfig, 'Position',[0 0 16 18], 'Toolbar','None','MenuBar','None');
+for g=1:numGenes
+    subaxis (6,numGenes,g,1, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075,'MT',0.04,'MB',0.07);
+    plotExpressionHeatmap (opts,xntgEXPT,tt,g) ;
+
+    ah = gca;
+    if g == 1
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
+        ylabel('$t$ (min)', 'Interpreter', 'latex');
+        text(-7,0,'A', 'FontSize', 12, 'FontWeight', 'bold');
+    else
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
+    end
+    set(ah, 'XTick', [10:10:50], 'XTickLabel', {});
+    title(genesymbols{g}, 'Interpreter', 'latex');
+
+    if g == 4
+        oldpos = get(ah, 'Position');
+        cbh = colorbar(ah, 'Location', 'manual', ...
+            'Position', [oldpos(1)+oldpos(3)+0.01 oldpos(2) 0.01 oldpos(4)]);
+    end    
+
+end
+
+%==== PLOT yntgEXPT (=diagnostics.yntg)
+for g=1:numGenes
+    subaxis (6,numGenes,g,2, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075);
+    plotOnoffstateHeatmap (opts,diagnostics.yntg,tt,g) ;
+
+    ah = gca;
+    if g == 1
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
+        ylabel('$t$ (min)', 'Interpreter', 'latex');
+        text(-7,0,'B', 'FontSize', 12, 'FontWeight', 'bold');
+    else
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
+    end
+    set(ah, 'XTick', [10:10:50], 'XTickLabel', {});
+
+end
+
+%==== PLOT yntgCBI (i.e., sgn (sum_g T_gf x_f + h_g) for xntgCBI)
+numNuclei = size(xntgEXPT,1);
+numTimepoints = size(xntgEXPT,2);
+yntgMANU = zeros(numNuclei,numTimepoints,numGenes);
+for n=1:numNuclei
+    for t=1:numTimepoints
+        yntgMANU(n,t,:) = sign (grnFIGR.Tgg(:,:) * squeeze(xntgEXPT(n,t,:)) + grnFIGR.hg(:) );
+    end
+end
+
+for g=1:numGenes
+    subaxis (6,numGenes,g,3, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075);
+    plotOnoffstateHeatmap (opts,yntgMANU,tt,g) ;
+
+    ah = gca;
+    if g == 1
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
+        ylabel('$t$ (min)', 'Interpreter', 'latex');
+        text(-7,0,'C', 'FontSize', 12, 'FontWeight', 'bold');
+    else
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
+    end
+    set(ah, 'XTick', [10:10:50], 'XTickLabel', {});
+
+
+
+end
+
+%==== PLOT xntgREF - prediction of refined CBI model
+for g=1:numGenes
+    subaxis (6,numGenes,g,4, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075);
+    plotExpressionHeatmap (opts,xntgREF,tt,g) ;
+
+    ah = gca;
+    if g == 1
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
+        ylabel('$t$ (min)', 'Interpreter', 'latex');
+        text(-7,0,'D', 'FontSize', 12, 'FontWeight', 'bold');
+    else
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
+    end
+    set(ah, 'XTick', [10:10:50], 'XTickLabel', {});
+
+end
+
+%==== PLOT xntgSA - prediction of simulated annealing model
+for g=1:numGenes
+    subaxis (6,numGenes,g,5, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075);
+    plotExpressionHeatmap (opts,xntgSA,tt,g) ;
+
+    ah = gca;
+    if g == 1
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
+        ylabel('$t$ (min)', 'Interpreter', 'latex');
+        text(-7,0,'E', 'FontSize', 12, 'FontWeight', 'bold');
+    else
+        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
+    end
+    set(ah, 'XTick', [10:10:50], 'XTickLabel', {});
+
+end
+
+%==== PLOT data, SA model output, and FIGR output in 1D lineplots for time
+%==== class 7
+for g=1:numGenes
+   
+    subaxis (6,numGenes,g,6, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075);
+
+    hold on;
+    pl1 = plot([1:58],xntgEXPT(:,8,g),'Color',[0.569 0.137 0.9], 'LineWidth', 1);  
+    pl2 = plot([1:58],xntgSA(:,8,g),'Color',[0.9 0.569 0.137], 'LineWidth', 1);  
+    pl3 = plot([1:58],xntgREF(:,8,g),'Color',[0.137 0.9 0.569], 'LineWidth', 1);  
+    hold off;
+    ylim([0,225]); 
+    xlim([1,58]);
+
+    ah = gca;
+    if g == 1
+        set(ah, 'YTick', [0:50:200], 'YTickLabel', {'0','','100','','200'}); 
+        ylabel('$x$', 'Interpreter', 'latex');
+        text(-7,240,'F', 'FontSize', 12, 'FontWeight', 'bold');
+    else
+        set(ah, 'YTick', [0:50:200], 'YTickLabel', {});
+    end
+
+    set(ah, 'XTick', [10:10:50], 'XTickLabel', [45:10:85]);
+    xlabel('$n$ (\% EL)', 'Interpreter', 'latex');
+    %set(ah, 'XTick', [45:10:85], 'FontSize', 8); 
+    %xlabel('$n$ (\% EL)', 'Interpreter', 'latex');
+
+    if (g == 1)
+
+        legend(pl1, 'Data', 'Location', 'best');
+        legend('boxoff');
+
+    end
+
+    if (g == 2)
+
+        legend(pl2, 'SA');
+        legend('boxoff');
+
+    end
+
+    if (g == 3)
+
+        legend(pl3, 'FIGR');
+        legend('boxoff');
+
+    end
+
+    if (g == 4)
+
+        text(37,190,sprintf('$t = %.1f$', tt(8)), ...
+                'Interpreter', 'latex', 'FontSize', 8);
+
+    end
+    if (g == 1)
+
+        text(34,30,'$\triangleright$', 'Interpreter', 'latex');
+        text(16,40,'$\triangleleft$', 'Interpreter', 'latex');
+
+    end
+
+
+end
+
+
+printpdf (gcf, 'heatmaps-DrosCBISA-v2.pdf');
+return;
+
+%==== PLOT xntgCBI
+hfig = figure ();
+set (hfig, 'pos',[0 500 800 200], 'Toolbar','None','MenuBar','None');
+for g=1:numGenes
+    subaxis (1,numGenes,g, 'Spacing',.025,'Padding',0,'ML',.025,'MR',.025);
+    plotExpressionHeatmap (opts,xntgCBI,tt,g) ;
+end
+printpdf (gcf, 'heatmap-xntgCBI.pdf');
+
+
+%==== PLOT xntgEXPT
+hfig = figure ();
+set (hfig, 'pos',[0 500 800 200], 'Toolbar','None','MenuBar','None');
+for g=1:numGenes
+    subaxis (1,numGenes,g, 'Spacing',.025,'Padding',0,'ML',.025,'MR',.025);
+    plotExpressionHeatmap (opts,xntgEXPT,tt,g) ;
+end
+printpdf (gcf, 'heatmap-xntgEXPT.pdf');
+
+%==== PLOT yntgEXPT (=diagnostics.yntg)
+hfig = figure ();
+set (hfig, 'pos',[0 500 800 200], 'Toolbar','None','MenuBar','None');
+for g=1:numGenes
+    subaxis (1,numGenes,g, 'Spacing',.025,'Padding',0,'ML',.025,'MR',.025);
+    plotOnoffstateHeatmap (opts,diagnostics.yntg,tt,g) ;
+end
+printpdf (gcf, 'heatmap-yntgEXPT.pdf');
+
+%==== PLOT yntgCBI (i.e., sgn (sum_g T_gf x_f + h_g) for xntgCBI)
+numNuclei = size(xntgEXPT,1);
+numTimepoints = size(xntgEXPT,2);
+yntgMANU = zeros(numNuclei,numTimepoints,numGenes);
+for n=1:numNuclei
+    for t=1:numTimepoints
+        yntgMANU(n,t,:) = sign (grnFIGR.Tgg(:,:) * squeeze(xntgEXPT(n,t,:)) + grnFIGR.hg(:) );
+    end
+end
+hfig = figure ();
+set (hfig, 'pos',[0 500 800 200], 'Toolbar','None','MenuBar','None');
+for g=1:numGenes
+    subaxis (1,numGenes,g, 'Spacing',.025,'Padding',0,'ML',.025,'MR',.025);
+    plotOnoffstateHeatmap (opts,yntgMANU,tt,g) ;
+end
+printpdf (gcf, 'heatmap-yntgMANU.pdf');
+return;
+
+
+
 %==== PLOT GRNs in one figure file using subaxis
 
 hfig = figure();
@@ -16,7 +240,7 @@ colormap (myColormap);
 geneNames = {'Hb', 'Kr', 'Gt', 'Kni', 'Bcd', 'Cad', 'Tll'};
 
 %======== The CBI parameters after refinement
-grntoplot = grnREF_sig;
+grntoplot = grnREF;
 
 %======== NORMALIZE EACH ROW OF THE T-MATRIX
 numGenes = size (grntoplot.Tgg, 1);
@@ -98,166 +322,6 @@ text(0.0,0.25,'B', 'FontSize', 12, 'FontWeight', 'bold');
 printpdf (gcf, 'grns-DrosCBISA.pdf');
 return;
 
-%=========== plot heatmaps of data and gap gene fits 
-%==== PLOT xntgEXPT
-genesymbols = {'Hunchback', 'Kr\"uppel', 'Giant', 'Knirps'};
-hfig = figure ('Units', 'centimeters');
-set (hfig, 'Position',[0 0 16 16], 'Toolbar','None','MenuBar','None');
-for g=1:numGenes
-    subaxis (5,numGenes,g,1, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075,'MT',0.04,'MB',0.07);
-    plotExpressionHeatmap (opts,xntgEXPT,tt,g) ;
-
-    ah = gca;
-    if g == 1
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
-        ylabel('$t$ (min)', 'Interpreter', 'latex');
-        text(-7,0,'A', 'FontSize', 12, 'FontWeight', 'bold');
-    else
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
-    end
-    set(ah, 'XTick', [10:10:50], 'XTickLabel', {});
-    title(genesymbols{g}, 'Interpreter', 'latex');
-
-    if g == 4
-        oldpos = get(ah, 'Position');
-        cbh = colorbar(ah, 'Location', 'manual', ...
-            'Position', [oldpos(1)+oldpos(3)+0.01 oldpos(2) 0.01 oldpos(4)]);
-    end    
-
-end
-
-%==== PLOT yntgEXPT (=diagnostics.yntg)
-for g=1:numGenes
-    subaxis (5,numGenes,g,2, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075);
-    plotOnoffstateHeatmap (opts,diagnostics.yntg,tt,g) ;
-
-    ah = gca;
-    if g == 1
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
-        ylabel('$t$ (min)', 'Interpreter', 'latex');
-        text(-7,0,'B', 'FontSize', 12, 'FontWeight', 'bold');
-    else
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
-    end
-    set(ah, 'XTick', [10:10:50], 'XTickLabel', {});
-
-end
-
-%==== PLOT yntgCBI (i.e., sgn (sum_g T_gf x_f + h_g) for xntgCBI)
-numNuclei = size(xntgEXPT,1);
-numTimepoints = size(xntgEXPT,2);
-yntgMANU = zeros(numNuclei,numTimepoints,numGenes);
-for n=1:numNuclei
-    for t=1:numTimepoints
-        yntgMANU(n,t,:) = sign (grnCBI.Tgg(:,:) * squeeze(xntgEXPT(n,t,:)) + grnCBI.hg(:) );
-    end
-end
-
-for g=1:numGenes
-    subaxis (5,numGenes,g,3, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075);
-    plotOnoffstateHeatmap (opts,yntgMANU,tt,g) ;
-
-    ah = gca;
-    if g == 1
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
-        ylabel('$t$ (min)', 'Interpreter', 'latex');
-        text(-7,0,'C', 'FontSize', 12, 'FontWeight', 'bold');
-    else
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
-    end
-    set(ah, 'XTick', [10:10:50], 'XTickLabel', {});
-
-
-
-end
-
-%==== PLOT xntgREF_sig - prediction of refined CBI model
-for g=1:numGenes
-    subaxis (5,numGenes,g,4, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075);
-    plotExpressionHeatmap (opts,xntgREF_sig,tt,g) ;
-
-    ah = gca;
-    if g == 1
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
-        ylabel('$t$ (min)', 'Interpreter', 'latex');
-        text(-7,0,'D', 'FontSize', 12, 'FontWeight', 'bold');
-    else
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
-    end
-    set(ah, 'XTick', [10:10:50], 'XTickLabel', {});
-
-end
-
-%==== PLOT xntgSA - prediction of simulated annealing model
-for g=1:numGenes
-    subaxis (5,numGenes,g,5, 'Spacing',0.02,'Padding',0,'ML',.1,'MR',.075);
-    plotExpressionHeatmap (opts,xntgSA,tt,g) ;
-
-    ah = gca;
-    if g == 1
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', [3.1:13.5:43.6]); 
-        ylabel('$t$ (min)', 'Interpreter', 'latex');
-        text(-7,0,'E', 'FontSize', 12, 'FontWeight', 'bold');
-    else
-        set(ah, 'YTick', [2:2:8], 'YTickLabel', {});
-    end
-    set(ah, 'XTick', [10:10:50], 'XTickLabel', [45:10:85]);
-    xlabel('$n$ (\% EL)', 'Interpreter', 'latex');
-
-end
-printpdf (gcf, 'heatmaps-DrosCBISA.pdf');
-return;
-
-
-
-
-%==== PLOT xntgCBI
-hfig = figure ();
-set (hfig, 'pos',[0 500 800 200], 'Toolbar','None','MenuBar','None');
-for g=1:numGenes
-    subaxis (1,numGenes,g, 'Spacing',.025,'Padding',0,'ML',.025,'MR',.025);
-    plotExpressionHeatmap (opts,xntgCBI,tt,g) ;
-end
-printpdf (gcf, 'heatmap-xntgCBI.pdf');
-
-
-%==== PLOT xntgEXPT
-hfig = figure ();
-set (hfig, 'pos',[0 500 800 200], 'Toolbar','None','MenuBar','None');
-for g=1:numGenes
-    subaxis (1,numGenes,g, 'Spacing',.025,'Padding',0,'ML',.025,'MR',.025);
-    plotExpressionHeatmap (opts,xntgEXPT,tt,g) ;
-end
-printpdf (gcf, 'heatmap-xntgEXPT.pdf');
-
-%==== PLOT yntgEXPT (=diagnostics.yntg)
-hfig = figure ();
-set (hfig, 'pos',[0 500 800 200], 'Toolbar','None','MenuBar','None');
-for g=1:numGenes
-    subaxis (1,numGenes,g, 'Spacing',.025,'Padding',0,'ML',.025,'MR',.025);
-    plotOnoffstateHeatmap (opts,diagnostics.yntg,tt,g) ;
-end
-printpdf (gcf, 'heatmap-yntgEXPT.pdf');
-
-%==== PLOT yntgCBI (i.e., sgn (sum_g T_gf x_f + h_g) for xntgCBI)
-numNuclei = size(xntgEXPT,1);
-numTimepoints = size(xntgEXPT,2);
-yntgMANU = zeros(numNuclei,numTimepoints,numGenes);
-for n=1:numNuclei
-    for t=1:numTimepoints
-        yntgMANU(n,t,:) = sign (grnCBI.Tgg(:,:) * squeeze(xntgEXPT(n,t,:)) + grnCBI.hg(:) );
-    end
-end
-hfig = figure ();
-set (hfig, 'pos',[0 500 800 200], 'Toolbar','None','MenuBar','None');
-for g=1:numGenes
-    subaxis (1,numGenes,g, 'Spacing',.025,'Padding',0,'ML',.025,'MR',.025);
-    plotOnoffstateHeatmap (opts,yntgMANU,tt,g) ;
-end
-printpdf (gcf, 'heatmap-yntgMANU.pdf');
-return;
-
-
 
 
 %==== PLOT GRNs
@@ -275,12 +339,12 @@ print ('grnSA', '-dpng', '-r300');
 print ('grnSA', '-dpdf', '-r300');
 
 
-plotGRN (opts, grnCBI) ; title ('grnCBI: T_{gf}, h_g, R_g, \lambda_g, D_g');
+plotGRN (opts, grnFIGR) ; title ('grnFIGR: T_{gf}, h_g, R_g, \lambda_g, D_g');
 set (gcf, 'pos',[0 200 600 200], 'Toolbar','None','MenuBar','None');
 set (gca, 'FontSize', 12);
 set (gca, 'FontWeight', 'bold');
 set (gca, 'TickLength', [0 0.025]);
-print ('grnCBI-SLOPE', '-dpng', '-r300');
+print ('grnFIGR-SLOPE', '-dpng', '-r300');
 
 return;
 
