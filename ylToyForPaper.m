@@ -13,6 +13,7 @@ opts.splinesmoothing = 1.00;   % 1 = no smoothing, 0 = extreme smoothing
 opts.Rld_method = 'slope';
 opts.Rld_thresh_on_frac = 0.2;
 opts.Rld_thresh_off_frac = 0.01;
+opts.Rld_tsafety = 3;
 %opts.synthesisfunction = 'synthesis_sigmoid_sqrt';
 opts.synthesisfunction = 'synthesis_heaviside';
 opts.ODEAbsTol = 1e-4;
@@ -91,7 +92,7 @@ for g=1:2
     xlabel ('$x_1$', 'Interpreter','latex');
     yhandle = ylabel ('$x_2$', 'Interpreter','latex', 'Rotation', 0);
     set (yhandle, 'Units', 'Normalized', 'Position', [-0.18, 0.45, 0]);
-    if (g==1) ; xticks ([]); xlabel (''); end
+    %if (g==1) ; xticks ([]); xlabel (''); end
     axis ([0 1 0 1]);
     
     text(-0.1,1.1,char(65+3*g), 'FontSize', 12, 'FontWeight', 'bold');
@@ -107,7 +108,7 @@ for g=1:2
         sprintf('$y_%d = +1$',g), ...
         'AutoUpdate', 'off' );
     set (myLeg, 'interpreter', 'latex');
-    set (myLeg, 'location', 'best');    
+    set (myLeg, 'location', 'NorthEast');    
     
     tFineGrid = linspace (min(tt), max(tt), 501);
     mySpline = csaps (tt, xt, opts.splinesmoothing);   % WE CHECKED THAT WE NEED THIS MUCH SMOOTHING
@@ -115,7 +116,7 @@ for g=1:2
     plot (tFineGrid, fnval (mySpline, tFineGrid), 'DisplayName', '' );
     yticks ([0 .5 1]);
     xlabel ('$t$', 'Interpreter','latex');
-    if (g==1) ; xticks ([]); xlabel (''); end
+    %if (g==1) ; xticks ([]); xlabel (''); end
     yhandle = ylabel (sprintf('$x_%d$',g), 'Interpreter','latex', 'Rotation', 0);
     set (yhandle, 'Units', 'Normalized', 'Position', [-0.18, 0.45, 0]);
       
@@ -125,7 +126,7 @@ for g=1:2
     
     f = @(x,y)   grnCBI.Tgg(g,1)*x + grnCBI.Tgg(g,2)*y + grnCBI.hg(g);
     fcontour(f, [0 1 0 1], 'LevelList', [0], 'LineStyle', '--', 'LineColor', 'b', 'LineWidth', 1); %, 'DisplayName', 'Inferred SB');
-    if (g==1) ; xticks ([]); end
+    %if (g==1) ; xticks ([]); end
     if g==1
         myLeg = legend ('$\widetilde{T}_{11} x_1 + \widetilde{T}_{12} x_2 + \widetilde{h}_1 = 0$' );
     else
@@ -143,7 +144,7 @@ for g=1:2
     yhandle = ylabel ('$x_2$', 'Interpreter','latex', 'Rotation', 0);
     set (yhandle, 'Units', 'Normalized', 'Position', [-0.18, 0.45, 0]);
     yticks ([0 .5 1]);
-    if (g==1) ; xticks ([]); xlabel (''); end
+    %if (g==1) ; xticks ([]); xlabel (''); end
     axis ([0 1 0 1]);
     
     text(-0.1,1.1,char(67+3*g), 'FontSize', 12, 'FontWeight', 'bold');
@@ -255,11 +256,11 @@ set (gca, 'TickLength', [0 0.025]);
 text(-0.05,0.05,'C', 'FontSize', 12, 'FontWeight', 'bold');
 
 
+printpdf(gcf,'ToyNinePanels.pdf');
 
 
 
-
-export_fig -transparent toyNinePanels.pdf;
+%export_fig -transparent toyNinePanels.pdf;
 
 
 
