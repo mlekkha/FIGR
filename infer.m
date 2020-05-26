@@ -65,14 +65,14 @@ for g = 1:numGenes
     vnt = []; % Storing the slope fo %estimating R, lambda, and D
     
     for n = 1:numNuclei
-        mySpline = csaps (tt, xntg(n,:,g), opts.splinesmoothing); % Fit spline to trajectory
+        mySpline = csaps (tt, xntg(n,:,g), opts.pvxParams(1,n,g)); % Fit spline to trajectory
         mySplDer = fnder (mySpline);         % Calculate derivative w.r.t. gene g!
         for t = 1:numTimepoints              % At each timepoint
             vnt(n,t) = fnval (mySplDer, tt(t));  % Evaluate derivative
-            if (abs(vnt(n,t)) > opts.slopethresh)	 % If derivative is significant
+            if (abs(vnt(n,t)) > opts.pvxParams(2,n,g))	 % If derivative is significant
                 ynt(n,t) = sign (vnt(n,t));      % Infer on/off state from sign of derivative
             else							% Else infer on/off state from size of x itself
-                ynt(n,t) = sign (xntg(n,t,g) - opts.exprthresh);
+                ynt(n,t) = sign (xntg(n,t,g) - opts.pvxParams(3,n,g));
             end           					% YLL 2018-10-2
         end
     end
@@ -85,10 +85,25 @@ for g = 1:numGenes
         Tg = NaN (numGenes+numExternals, 1);
         h = NaN ();
     else
-        % leave +1 alone, but change -1 to 0 in preparation for LogReg
-        Beta = glmfit(xkg, max(yk,0), 'binomial', 'link', 'logit');  % We get h,T1,T2,...,
-        Tg = Beta(2:end);
-        h = Beta(1);
+        %%======== Select logistic regression implementation.
+        if(strcmp(opts.lm,'glmfit'))
+            % leave +1 alone, but change -1 to 0 in preparation for LogReg
+            Beta = glmfit(xkg, max(yk,0), 'binomial', 'link', 'logit');  % We get h,T1,T2,...,
+            Tg = Beta(2:end);
+            h = Beta(1);
+        elseif(strcmp(opts.lm,'FIGRlogReg'))
+            Beta = FIGRlogReg(xkg, max(yk,0), numNuclei, opts.lambda); % We get h,T1,T2,...,
+            Tg = Beta(2:end);
+            h = Beta(1); 
+        elseif(strcmp(opts.lm,'lassoglm'))
+            [m, n] = size(xkg);
+            X = xkg;
+            X = [ones(m,1) X]; %% Add bias term
+            B = lassoglm(X, max(yk,0)); % We get h,T1,T2,...,
+            Beta = B(:,75);
+            Tg = Beta(2:end);
+            h = Beta(1);
+        end
     end
     
     %======== Record result in Tgg array
