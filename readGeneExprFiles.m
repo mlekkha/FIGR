@@ -1,6 +1,4 @@
-function [xntg,tt,nucleusNames,geneNames] = readGeneExprFiles (app)
-
-disp (sigmoid(1.0));
+function [xntg,tt,nucleusNames,geneNames] = readGeneExprFiles ()
 
 fnameTN = "tn.txt";
 fnameXNTG = "xntg.txt";
