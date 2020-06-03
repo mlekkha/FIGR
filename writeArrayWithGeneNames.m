@@ -1,15 +1,16 @@
-%
-% writeArray() and readArray() provide a way to write arbitrary-dimensional
+ % writeArray() and readArray() provide a way to write arbitrary-dimensional
 % arrays.
-function writeArray (filename, a)
-delim = {'\t', '\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'};
-%delim = {' ', '\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'};
+function writeArray (filename, a, geneNames)
+delim = {'\t', '\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n', 'n', 'n', 'n'};
 fmtstr = '%.2f';
 dmax = ndims(a);
 cmaxd = size(a);
 fid = fopen (filename, 'w');
-fprintf (fid, '%d dims\n', dmax);
-fprintf (fid, '%d elems\n', cmaxd);
+for i=1:numel(geneNames)
+    fprintf (fid, '%s', string(geneNames(i)));
+    fprintf (fid, '\t');
+end
+fprintf (fid, '\n');
 idx = ones (cmaxd);                 % start all indices at 1
 for i=1:numel(a)
     fprintf (fid, fmtstr, a(i));      % print array element

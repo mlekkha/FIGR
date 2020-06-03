@@ -11,4 +11,4 @@ end
 a = fscanf (fid, '%f');      % read in all elements
 a = reshape (a, cmaxd);
 fclose (fid);
-endcon
+end

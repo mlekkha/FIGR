@@ -1,20 +1,21 @@
-function theta = FIGRlogReg(X, y, numNuclei, lambda)
+function theta = FIGRlogReg(X, y, lambda)
 
 % This function implements regularized logistic regression with cost
-
 % function defined in FIGRcomputeCost. fminunc is used to find the minimum
-
 % of the cost function.
         
-        [m, n] = size(X);
+        [numDatapoints, numGenes] = size(X);
         
-        X = [ones(m,1) X]; %% Add bias term.
+        X = [ones(numDatapoints,1) X];     % /Prepend column of 1's
         
-        [m, n] = size(X); 
+        % Set initial parameters to zero.
+        % Parameters are h, T1, T2, ...
         
-        initialTheta = zeros(n, 1); %% Set initial parameters theat to zero.
+        initialTheta = zeros(numGenes+1, 1); 
               
-        options = optimset('GradObj', 'on', 'MaxIter', 400);
-        theta = fminunc(@(t)FIGRcomputeCost(t, X, y, lambda), initialTheta, options);
+        % YLL 2020-6-2: 'Display' = 'none' --> suppress details of fminunc
+        options = optimset('GradObj', 'on', 'MaxIter', 400, 'Display', 'none');
+        
+        theta = fminunc(@(Theta)FIGRcomputeCost(Theta, X, y, lambda), initialTheta, options);
         
 end

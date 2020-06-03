@@ -55,6 +55,12 @@ grn.lambdag = NaN (numGenes, 1);
 grn.Dg      = NaN (numGenes, 1);
 yntg        = NaN (numNuclei, numTimepoints, numGenes+numExternals);
 
+
+
+disp (size( xntg));
+disp (size( opts.pvxOpts_ngo));
+
+
 for g = 1:numGenes
     
     %======== Build xk (array of positions in HKGNBCT space)
@@ -65,14 +71,14 @@ for g = 1:numGenes
     vnt = []; % Storing the slope fo %estimating R, lambda, and D
     
     for n = 1:numNuclei
-        mySpline = csaps (tt, xntg(n,:,g), opts.pvxParams(1,n,g)); % Fit spline to trajectory
+        mySpline = csaps (tt, xntg(n,:,g), opts.pvxOpts_ngo(n,g,1)); % Fit spline to trajectory
         mySplDer = fnder (mySpline);         % Calculate derivative w.r.t. gene g!
         for t = 1:numTimepoints              % At each timepoint
             vnt(n,t) = fnval (mySplDer, tt(t));  % Evaluate derivative
-            if (abs(vnt(n,t)) > opts.pvxParams(2,n,g))	 % If derivative is significant
+            if (abs(vnt(n,t)) > opts.pvxOpts_ngo(n,g,2))	 % If derivative is significant
                 ynt(n,t) = sign (vnt(n,t));      % Infer on/off state from sign of derivative
             else							% Else infer on/off state from size of x itself
-                ynt(n,t) = sign (xntg(n,t,g) - opts.pvxParams(3,n,g));
+                ynt(n,t) = sign (xntg(n,t,g) - opts.pvxOpts_ngo(n,g,3));
             end           					% YLL 2018-10-2
         end
     end
@@ -92,7 +98,7 @@ for g = 1:numGenes
             Tg = Beta(2:end);
             h = Beta(1);
         elseif(strcmp(opts.lm,'FIGRlogReg'))
-            Beta = FIGRlogReg(xkg, max(yk,0), numNuclei, opts.lambda); % We get h,T1,T2,...,
+            Beta = FIGRlogReg(xkg, max(yk,0), opts.lambda); % We get h,T1,T2,...,
             Tg = Beta(2:end);
             h = Beta(1); 
         elseif(strcmp(opts.lm,'lassoglm'))

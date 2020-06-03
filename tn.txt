@@ -1,4 +1,4 @@
-wSample ID	Time	Position
+Sample ID	Time	Position
 Sample_0_8226	0	8226
 Sample_2_8226	2	8226
 Sample_4_8226	4	8226

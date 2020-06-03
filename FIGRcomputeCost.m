@@ -24,7 +24,6 @@ h = sigmoid(X * Theta);
 J = (1 / m) * sum( - y .* log(h) - (1-y) .* log(1 - h) ) + (lambda / (2 * m)) * sum(Theta(2:end).^2);
 
 grad = zeros(size(Theta, 1), 1);
-
 grad(1) = sum(X(:,1).*(h - y))/m;
 
 for i = 2 : size(grad)

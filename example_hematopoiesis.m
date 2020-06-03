@@ -1,40 +1,46 @@
 %% FIGR example for hematopoietic FDCIP-mix data from May et al's experiment.
 
 clc;
- 
+
 %======== READ EXPERIMENTAL TRAJECTORIES xntg(:,1,:) AND TIMEPOINTS tt =======
-[xntgEXPT tt geneNames] = readGeneExprFiles();
+[xntgEXPT tt nucleusNames geneNames] = readGeneExprFiles();
 
-%======== READ PARAMETERS p, v, and x DEFINED BY USER =======
-pvxParams = readArray('params.txt');
+%======== READ VALUES OF OPTIONS p, v, and x THAT HAVE BEEN TUNED BY USER  =======
+% INDEX ORDER IS n, g, o (nucleus, gene, option index)
+pvxOpts_ngo = readArray('options.txt');
+disp (size (pvxOpts_ngo ));
 
-%======== Define global structs for options and ODE options 
+%======== Define global structs for options and ODE options
 global opts;
 global ODEopts;
 global optimopts;
 
 %======== SET OPTIONS (see README.md for description) ========
-opts = struct(  'debug', 0, ...                 
-                'slopethresh', 1.0, ...         
-                'exprthresh', 0.5, ...
-                'splinesmoothing', 0.01, ...
-                'spatialsmoothing', 0.5, ...
-                'minborder_expr_ratio', 0.01, ...
-                'Rld_method', 'slope', ...
-                'Rld_tsafety', 3, ...
-                'synthesisfunction', 'synthesis_sigmoid_sqrt', ...
-                'ODEAbsTol', 1e-3, ...
-                'ODEsolver', 'ode45', ...
-                'pvxParams', pvxParams, ...
-                'lambda', 0.5, ...
-                'lm', 'FIGRlogReg'); % glmfit, FIGRlogReg, lassoglm
-            
+% NOTE: slopethresh, exprthresh, splinesmoothing are no longer used!
+% NOTE: Rld_tsafety also should be removed.
+% NOTE: These pars are now supplied via  pvxOpts_ngo
+opts = struct(  'debug', 0, ...
+    'slopethresh', NaN, ...
+    'exprthresh', NaN, ...
+    'splinesmoothing', NaN, ...
+    'Rld_tsafety', 3, ...       % should eventually ged rid
+    'spatialsmoothing', 0.5, ...
+    'minborder_expr_ratio', 0.01, ...
+    'Rld_method', 'slope', ...
+    'synthesisfunction', 'synthesis_sigmoid_sqrt', ...
+    'ODEAbsTol', 1e-3, ...
+    'ODEsolver', 'ode45', ...
+    'pvxOpts_ngo', pvxOpts_ngo, ...
+    'lambda', 0.5, ...
+    'lm', 'FIGRlogReg'); % glmfit|FIGRlogReg|lassoglm
+
 %======== set the ODE options
 ODEopts = odeset('AbsTol', opts.ODEAbsTol);
 
-numGenes = 12; 
+numGenes = 12;
 
 numNuclei = size (xntgEXPT,1);
+
 
 %======== Start timer
 tic;
@@ -43,56 +49,56 @@ tic;
 [grnFIGR, diagnostics] = infer (opts, xntgEXPT, tt, numGenes);
 yntgEXPT = diagnostics.yntg;
 
-  marker_size = 4;
-   
+marker_size = 4;
 
-  [xntgREF] = computeTrajs (opts, grnFIGR, xntgEXPT, tt);
-  
-  %[xntgREF] = computeTrajs (opts, grnREF, xntgEXPT, tt);
-  close all;
-  figure('Units', 'inches', 'Position', [0 0 8.5 5.75]);
-  for g=1:numGenes
-      for n=1:numNuclei
-         h(g) = subplot(4,3,g);
-              
-         %set(a,'box','off','color','none')
-         %b = axes('Position',get(a,'Position'),'box','on','xtick',[],'ytick',[]);
-         if(n == 1)
-            ph(1) = plot(tt, xntgREF(n,:,g), '-', 'MarkerFaceColor', 'r', 'color', 'r','LineWidth', 1.5);
-         else
-            ph(1) = plot(tt, xntgREF(n,:,g), '-', 'MarkerFaceColor', 'b', 'color', 'b','LineWidth', 1.5);
-         end
-         hold on;
-         if(n == 1)
+
+[xnrgRECAL] = computeTrajs (opts, grnFIGR, xntgEXPT, tt);
+
+
+close all;
+figure('Units', 'inches', 'Position', [0 0 8.5 5.75]);
+for g=1:numGenes
+    for n=1:numNuclei
+        h(g) = subplot(4,3,g);
+        
+        %set(a,'box','off','color','none')
+        %b = axes('Position',get(a,'Position'),'box','on','xtick',[],'ytick',[]);
+        if(n == 1)
+            ph(1) = plot(tt, xnrgRECAL(n,:,g), '-', 'MarkerFaceColor', 'r', 'color', 'r','LineWidth', 1.5);
+        else
+            ph(1) = plot(tt, xnrgRECAL(n,:,g), '-', 'MarkerFaceColor', 'b', 'color', 'b','LineWidth', 1.5);
+        end
+        hold on;
+        if(n == 1)
             ph(2) = plot(tt, xntgEXPT(n,:,g), 'o', 'MarkerFaceColor', 'r', 'color', 'r','markers', marker_size);
-         else
+        else
             ph(2) = plot(tt, xntgEXPT(n,:,g), 'o', 'MarkerFaceColor', 'b', 'color', 'b','markers', marker_size);
-         end
-         title(geneNames(g), 'FontSize', 10, 'fontweight', 'bold', 'interpreter','latex');
-         
-         if(g == 3)
-             %legend([ph(2) ; ph(1)], {'Experimental data', 'Model'}, 'Location','northwest','Orientation','vertical', 'FontSize',8)
-             %legend boxoff;
-         end
-         
-         if(g == 10 || g == 11 || g == 12)
-            % xlabel('$t$','FontSize', 12, 'interpreter', 'latex'); 
+        end
+        title(geneNames(g), 'FontSize', 10, 'fontweight', 'bold', 'interpreter','latex');
+        
+        if(g == 3)
+            %legend([ph(2) ; ph(1)], {'Experimental data', 'Model'}, 'Location','northwest','Orientation','vertical', 'FontSize',8)
+            %legend boxoff;
+        end
+        
+        if(g == 10 || g == 11 || g == 12)
+            % xlabel('$t$','FontSize', 12, 'interpreter', 'latex');
             xlabel('$t$','interpreter', 'latex');
-         end
-         if(g == 1 || g == 2)
-             %set(gca,'xticklabel',{[]});
-         end
-
+        end
+        if(g == 1 || g == 2)
+            %set(gca,'xticklabel',{[]});
+        end
+        
         % axis([0 46.88 0 255]);
-      end
-     end 
+    end
+end
 
 filename = 'FIGR_Tmatrix.txt';
-writeArray(filename, grnFIGR.Tgg, geneNames);
+writeArrayWithGeneNames (filename, grnFIGR.Tgg, geneNames);
 
 % writeArray() and readArray() provide a way to write arbitrary-dimensional
 % arrays.
-function writeArray (filename, a, geneNames)
+function writeArrayWithGeneNames (filename, a, geneNames)
 delim = {'\t', '\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n', 'n', 'n', 'n'};
 fmtstr = '%.2f';
 dmax = ndims(a);
@@ -116,32 +122,18 @@ end
 fclose (fid);
 end
 
+function phasePlot (xntgEXPT, xnrgRECAL, geneNames)
 
-function [a] = readArray (filename)
-fid = fopen (filename, 'r');
-dmax = fscanf (fid, '%d');   % read number of dimensions
-fgets (fid);                 % skip to next line
-for d=1:dmax
-    cmaxd(d) = fscanf (fid, '%d');  % read number of elements
-    fgets (fid);                    % skip to next line
-end
-a = fscanf (fid, '%f');      % read in all elements
-a = reshape (a, cmaxd);
-fclose (fid);
-end
+n1 = 1;
+g1 = 1;
+n2 = 2;
+g2 = 2;
+plot(xntgEXPT(n1,:,g1), xntgEXPT(n2,:,g2));
+xGene = geneNames(g1);
+yGene = geneNames(g2);
 
-function phasePlot (xntgEXPT, xntgREF, geneNames)
-
-    n1 = 1;
-    g1 = 1;
-    n2 = 2;
-    g2 = 2;
-    plot(xntgEXPT(n1,:,g1), xntgEXPT(n2,:,g2));
-    xGene = geneNames(g1);
-    yGene = geneNames(g2);
-    
-    xlabel("df")
-    ylabel("df")
-    %plot3(xntgEXPT(1,:,1), xntgEXPT(2,:,2), xntgEXPT(2,:,3));
+xlabel("df")
+ylabel("df")
+%plot3(xntgEXPT(1,:,1), xntgEXPT(2,:,2), xntgEXPT(2,:,3));
 
 end
