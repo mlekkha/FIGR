@@ -1,5 +1,5 @@
 %
-% This function is a bit deprecated.
+% This function is unused and deprecated.
 % Ideally we would supply "saveStdGeneExprFiles.m"
 %
 
