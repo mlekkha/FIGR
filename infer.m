@@ -36,11 +36,9 @@ function [grn, diagnostics] = infer (opts, xntg,tt,numGenes)
 %     we only wish to infer regulatory parameters acting on the first 4
 %     genes; the last 3 genes are upstream regulators.
 
-if isfield (opts, 'geneNames')
-    geneNames = opts.geneNames;
-else
-    geneNames = ['A','B','C','D','E','F','G','H'];
-end
+
+disp (size (tt));
+disp (size (opts.pvxOpts_ngo));
 
 numNuclei     = size (xntg,1);
 numTimepoints = size (xntg,2);
@@ -48,17 +46,18 @@ numRegulators = size (xntg,3);
 numExternals = numRegulators - numGenes;
 numDatapoints = numNuclei * numTimepoints;  % number of data points for classification
 
+if isfield (opts, 'geneNames')
+    geneNames = opts.geneNames;
+else
+    geneNames = string(cellstr(transpose(char( 64+(1:numRegulators ) ))));  % A-Z
+end
+
 grn.Tgg     = NaN (numGenes, numRegulators); % allocate
 grn.hg      = NaN (numGenes, 1);     % allocate
 grn.Rg      = NaN (numGenes, 1); % foolproofint
 grn.lambdag = NaN (numGenes, 1);
 grn.Dg      = NaN (numGenes, 1);
 yntg        = NaN (numNuclei, numTimepoints, numGenes+numExternals);
-
-
-
-disp (size( xntg));
-disp (size( opts.pvxOpts_ngo));
 
 
 for g = 1:numGenes
@@ -121,7 +120,7 @@ for g = 1:numGenes
     if opts.debug > 0
         fprintf(1, ['Determining R, lambda, and D for %s ' ...
             'using the %s method \n'], ...
-            geneNames{g}, opts.Rld_method);
+            geneNames(g), opts.Rld_method);
     end
     
     switch opts.Rld_method

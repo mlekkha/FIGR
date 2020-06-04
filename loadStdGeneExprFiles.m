@@ -1,7 +1,13 @@
-function [xntg,tt,nucleusNames,geneNames] = readGeneExprFiles ()
-
-fnameTN = "tn.txt";
-fnameXNTG = "xntg.txt";
+%
+% LOAD "STANDARD-FORMAT" (ESPER FORMAT) GENE EXPRESSION FILE 
+% AND TIMEPOINT FILE
+% Edited Yen Lee Loh 2020-6-4
+%
+% The standard format includes gene names.
+%
+% See also:  loadMDA.m  saveMDA.m 
+%
+function [xntg,tt,nucleusNames,geneNames] = loadStdGeneExprFiles (fnameXNTG, fnameTN)
 
 %======== READ THREE-COLUMN FILE CONTAINING SAMPLE/TIME/NUCLEUS INFO
 fid = fopen (fnameTN, 'r');        %Opens File containing time points

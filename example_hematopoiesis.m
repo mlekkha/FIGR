@@ -3,12 +3,11 @@
 clc;
 
 %======== READ EXPERIMENTAL TRAJECTORIES xntg(:,1,:) AND TIMEPOINTS tt =======
-[xntgEXPT tt nucleusNames geneNames] = readGeneExprFiles();
+[xntgEXPT tt nucleusNames geneNames] = readGeneExprFiles("xntg.txt", "tn.txt");
 
 %======== READ VALUES OF OPTIONS p, v, and x THAT HAVE BEEN TUNED BY USER  =======
 % INDEX ORDER IS n, g, o (nucleus, gene, option index)
-pvxOpts_ngo = readArray('options.txt');
-disp (size (pvxOpts_ngo ));
+pvxOpts_ngo = loadMDA ('options.txt');
 
 %======== Define global structs for options and ODE options
 global opts;
@@ -37,26 +36,19 @@ opts = struct(  'debug', 0, ...
 %======== set the ODE options
 ODEopts = odeset('AbsTol', opts.ODEAbsTol);
 
-numGenes = 12;
-
+numGenes = 12;  % have to hardwire
 numNuclei = size (xntgEXPT,1);
-
-
-%======== Start timer
-tic;
 
 %======== INFER GRN PARAMETERS grnFIGR
 [grnFIGR, diagnostics] = infer (opts, xntgEXPT, tt, numGenes);
 yntgEXPT = diagnostics.yntg;
-
-marker_size = 4;
-
 
 [xnrgRECAL] = computeTrajs (opts, grnFIGR, xntgEXPT, tt);
 
 
 close all;
 figure('Units', 'inches', 'Position', [0 0 8.5 5.75]);
+marker_size = 4;
 for g=1:numGenes
     for n=1:numNuclei
         h(g) = subplot(4,3,g);
@@ -94,11 +86,10 @@ for g=1:numGenes
 end
 
 filename = 'FIGR_Tmatrix.txt';
-writeArrayWithGeneNames (filename, grnFIGR.Tgg, geneNames);
+saveTMatrix (filename, grnFIGR.Tgg, geneNames);
 
-% writeArray() and readArray() provide a way to write arbitrary-dimensional
-% arrays.
-function writeArrayWithGeneNames (filename, a, geneNames)
+
+function saveTMatrix  (filename, a, geneNames)
 delim = {'\t', '\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n', 'n', 'n', 'n'};
 fmtstr = '%.2f';
 dmax = ndims(a);
@@ -123,7 +114,6 @@ fclose (fid);
 end
 
 function phasePlot (xntgEXPT, xnrgRECAL, geneNames)
-
 n1 = 1;
 g1 = 1;
 n2 = 2;
@@ -131,9 +121,7 @@ g2 = 2;
 plot(xntgEXPT(n1,:,g1), xntgEXPT(n2,:,g2));
 xGene = geneNames(g1);
 yGene = geneNames(g2);
-
 xlabel("df")
 ylabel("df")
 %plot3(xntgEXPT(1,:,1), xntgEXPT(2,:,2), xntgEXPT(2,:,3));
-
 end
