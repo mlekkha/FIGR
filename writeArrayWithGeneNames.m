@@ -1,6 +1,9 @@
- % writeArray() and readArray() provide a way to write arbitrary-dimensional
-% arrays.
-function writeArray (filename, a, geneNames)
+%
+% This function is a bit deprecated.
+% Ideally we would supply "saveStdGeneExprFiles.m"
+%
+
+function writeArrayWithGeneNames (filename, a, geneNames)
 delim = {'\t', '\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n', 'n', 'n', 'n'};
 fmtstr = '%.2f';
 dmax = ndims(a);

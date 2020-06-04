@@ -3,11 +3,11 @@
 clc;
 
 %======== READ EXPERIMENTAL TRAJECTORIES xntg(:,1,:) AND TIMEPOINTS tt =======
-[xntgEXPT tt nucleusNames geneNames] = readGeneExprFiles("xntg.txt", "tn.txt");
+[xntgEXPT tt nucleusNames geneNames] = loadStdGeneExprFiles("xntg.txt", "tn.txt");
 
 %======== READ VALUES OF OPTIONS p, v, and x THAT HAVE BEEN TUNED BY USER  =======
 % INDEX ORDER IS n, g, o (nucleus, gene, option index)
-pvxOpts_ngo = loadMDA ('options.txt');
+pvxOpts_ngo = loadMDA ('esper_options.mda');
 
 %======== Define global structs for options and ODE options
 global opts;
