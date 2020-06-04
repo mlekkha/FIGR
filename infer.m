@@ -36,10 +36,6 @@ function [grn, diagnostics] = infer (opts, xntg,tt,numGenes)
 %     we only wish to infer regulatory parameters acting on the first 4
 %     genes; the last 3 genes are upstream regulators.
 
-
-disp (size (tt));
-disp (size (opts.pvxOpts_ngo));
-
 numNuclei     = size (xntg,1);
 numTimepoints = size (xntg,2);
 numRegulators = size (xntg,3);
