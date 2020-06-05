@@ -43,7 +43,6 @@ numNuclei = size (xntgEXPT,1);
 [grnFIGR, diagnostics] = infer (opts, xntgEXPT, tt, numGenes);
 yntgEXPT = diagnostics.yntg;
 
-[xnrgRECAL] = computeTrajs (opts, grnFIGR, xntgEXPT, tt);
 
 
 close all;
