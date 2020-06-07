@@ -18,7 +18,7 @@
 
 function [a] = loadMDA (filename)
 fid = fopen (filename, 'r');
-if (fid == -1) ; fprintf ('loadMDA: fopen failed!\n') ; return ; end
+if (fid == -1) ; fprintf (2,'loadMDA: fopen failed!\n') ; return ; end
         
 dmax = fscanf (fid, '%d');   % read number of dimensions
 fgets (fid);                 % skip to next line

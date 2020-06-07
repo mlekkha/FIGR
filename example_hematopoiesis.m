@@ -5,6 +5,10 @@ clc;
 %======== READ EXPERIMENTAL TRAJECTORIES xntg(:,1,:) AND TIMEPOINTS tt =======
 [xntgEXPT tt nucleusNames geneNames] = loadStdGeneExprFiles("xntg.txt", "tn.txt");
 
+saveMDA ("esper_xntg.mda", xntgEXPT);
+saveMDA ("esper_tn.mda", tt);
+
+
 %======== READ VALUES OF OPTIONS p, v, and x THAT HAVE BEEN TUNED BY USER  =======
 % INDEX ORDER IS n, g, o (nucleus, gene, option index)
 pvxOpts_ngo = loadMDA ('esper_options.mda');
@@ -42,7 +46,12 @@ numNuclei = size (xntgEXPT,1);
 %======== INFER GRN PARAMETERS grnFIGR
 [grnFIGR, diagnostics] = infer (opts, xntgEXPT, tt, numGenes);
 yntgEXPT = diagnostics.yntg;
+saveMDA ("esper_yntg.mda", yntgEXPT);
 
+
+%======== RECOMPUTE TRAJECTORIES
+[xntgRECAL] = computeTrajs (opts, grnFIGR, xntgEXPT, tt);
+  
 
 
 close all;
@@ -55,9 +64,9 @@ for g=1:numGenes
         %set(a,'box','off','color','none')
         %b = axes('Position',get(a,'Position'),'box','on','xtick',[],'ytick',[]);
         if(n == 1)
-            ph(1) = plot(tt, xnrgRECAL(n,:,g), '-', 'MarkerFaceColor', 'r', 'color', 'r','LineWidth', 1.5);
+            ph(1) = plot(tt, xntgRECAL(n,:,g), '-', 'MarkerFaceColor', 'r', 'color', 'r','LineWidth', 1.5);
         else
-            ph(1) = plot(tt, xnrgRECAL(n,:,g), '-', 'MarkerFaceColor', 'b', 'color', 'b','LineWidth', 1.5);
+            ph(1) = plot(tt, xntgRECAL(n,:,g), '-', 'MarkerFaceColor', 'b', 'color', 'b','LineWidth', 1.5);
         end
         hold on;
         if(n == 1)
@@ -112,7 +121,7 @@ end
 fclose (fid);
 end
 
-function phasePlot (xntgEXPT, xnrgRECAL, geneNames)
+function phasePlot (xntgEXPT, xntgRECAL, geneNames)
 n1 = 1;
 g1 = 1;
 n2 = 2;

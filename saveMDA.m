@@ -8,7 +8,7 @@ fmtstr = '%.2f';
 dmax = ndims(a);
 cmaxd = size(a);
 fid = fopen (filename, 'w');
-if (fid == -1) ; fprintf ('saveMDA: fopen failed!\n') ; return ; end
+if (fid == -1) ; fprintf (2,'saveMDA: fopen failed!\n') ; return ; end
 
 fprintf (fid, '%d dims\n', dmax);
 fprintf (fid, '%d elems\n', cmaxd);
