@@ -1,6 +1,6 @@
 %============================================================
 % Modified Principal Component Analysis for Binary-Classified Data
-% Yen Lee Loh 2020-6-6
+% Yen Lee Loh 2020-6-7
 %
 % Given a set of datapoints in G-dimensional space
 % classified into two groups,
@@ -26,7 +26,7 @@
 % and then a second coordinate transformation to x_{g'}, which
 % is a PCA in the reduced subspace spanned by the 2''...G'' axes.
 %============================================================
-function [UggP, xkgP] = mpca (xkg, yk, Tg, h)
+function [UggP, xkgP] = mpca (xkg, yk, Tg)
 fprintf ('\n============== mpca() =====================\n');
 
 [kmax gmax] = size (xkg);
@@ -34,21 +34,20 @@ fprintf ('\n============== mpca() =====================\n');
 xgk = xkg';   % more natural if position vectors are column vectors
 % after all, "basis" is going to be column vectors
 
-%======== ROTATE TO ALIGN "X" AXIS WITH CLASSIFICATION HYPERPLANE NORMAL
+%======== ROTATE TO ALIGN 1-AXIS WITH CLASSIFICATION HYPERPLANE NORMAL
 % Direction 1 is fixed to be along Tg.
 % Go from the unprimed frame to the double-primed (PP) frame.
 UggPP = eye (gmax, gmax);
 UggPP (:,1) = Tg;
 UggPP = gramSchmidtOrthogonalize (UggPP);  % U_{g,g''}
 UgPPg = inv (UggPP);
-xgkMean = -h/norm(Tg) * UggPP(:,1);
-xgPPk = UgPPg * (xgk - xgkMean);
+xgPPk = UgPPg * xgk;  % don't subtract the mean!
 
 fprintf ("Intermediate basis (1st column is Tg):\n"); disp (UggPP);
 
-%======== CONSTRUCT 6-DIMENSIONAL ROTATION TO PRINCIPAL AXIS FRAME
+%======== ROTATE TO ALIGN 2-AXIS WITH DOMINANT EIGENVECTOR, ETC.
 % Rotate within the subspace spanned by directions 2,3,4,...,G.
-Cgg = cov (xgPPk'); % find covariance matrix
+Cgg = cov (xgPPk'); % find covariance matrix (second moments about mean)
 fprintf ("Covariance matrix:\n"); disp (Cgg);
 
 Cgg = Cgg(2:end,2:end);
@@ -67,24 +66,20 @@ fprintf ("Eigenvecs (columns) in decreasing order of evals:\n"); disp (evecs);
 
 UgPPgP = eye (gmax,gmax);
 UgPPgP(2:end,2:end) = evecs;
-xgPPkMean = mean(xgPPk,2);      % find mean over all data points
-xgPPkMean(1) = 0;                % don't shift in direction 1
+%xgPPkMean = mean(xgPPk,2);    % find mean over all data points
+%xgPPkMean(1) = 0;             % do NOT shift in direction 1
 
 fprintf ("Rotation within subspace spanned by dirs 2...G:\n"); disp (UgPPgP);
 
-xgPk = UgPPgP' * (xgPPk - xgPPkMean);
-UggP = UggPP * UgPPgP;       % U_{gg'} = U_{gg''} U_{g''g'}
+%xgPk = UgPPgP' * (xgPPk - xgPPkMean);
+xgPk = UgPPgP' * xgPPk;
+UggP = UggPP * UgPPgP;        % overall rotation U_{gg'} = U_{gg''} U_{g''g'}
 
 fprintf ("Row vectors below are modified principal axes:\n"); disp (UggP);
 
 xkgP = xgPk';  % convert back to correct form for returnvalue
 fprintf ("============== end mpca() =====================\n");
 return  % return [UggP, xkgP]
-
-% If we wished, we could have concatenated the two transformations into
-% a single transformation of the form
-% xgkRot = finalRot' * (xgkRot - finalOrg);
-
 
     function bNew = gramSchmidtOrthogonalize (b)
         %=================================================

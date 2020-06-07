@@ -1,6 +1,6 @@
 %============================================================
 % Modified Principal Component Analysis for Binary-Classified Data
-% Yen Lee Loh 2020-6-6
+% Yen Lee Loh 2020-6-7
 %
 % Demonstrates the use of mpca().
 %============================================================
@@ -10,8 +10,8 @@ clc; fprintf ('\n============== mpcaDemo =====================\n');
 fprintf ('1. Toy model with datapoints in elliptical disk \n');
 fprintf ('2. Toy model with datapoints in ellipsoid \n');
 fprintf ('3. Fly dataset (HKGNBCT) \n');
-fprintf ('4. Esper dataset (not yet implemented) \n');
-choice = input ("Which example do you want to run (1, 2, or 3)? ");
+fprintf ('4. Esper dataset (12 genes + 1 external regulator) \n');
+choice = input ("Which of the above examples do you want to run (Enter a number)? ");
 if (choice==1)
     %======== EXAMPLE 1 ==================================================
     %======== PREPARE DATAPOINTS xkg AND CLASSES yk: SYNTHETIC GAUSSIAN DATA
@@ -57,7 +57,7 @@ if (choice==1)
     xkg = xgk';
     xkg = xkg + center;          % shift
     
-    imageSize = 16.;
+    imageSize = 14.;
     scal = imageSize*.8;
     
 elseif (choice==2)
@@ -102,48 +102,46 @@ elseif (choice==2)
     xkg = xgk';
     xkg = xkg + center;          % shift
     
-    imageSize = 16.;
+    imageSize = 14.;
     scal = imageSize*.8;
     
     
 elseif (choice==3)
     %======== EXAMPLE 3 ==================================================
-    % PREPARE DATAPOINTS xkg AND CLASSES yk: FLY DATA
-     
-    gTarget = input ("Which gene's ON/OFF states to plot (1,2,3,4=H,K,G,N)? ");
-    
-    geneNames = {'H', 'K', 'G', 'N', 'B', 'C', 'T'};
+    % PREPARE DATAPOINTS xkg AND CLASSES yk: FLY DATA    
+    geneNames = ["H" "K" "G" "N" "B" "C" "T"]';
     xntg = load('xntg.mat').xntg;       % note syntax
     yntg = load('yntg.mat').yntg;
     [nmax tmax gmax] = size (xntg);     % number of nuclei, timepts, genes
     kmax = nmax*tmax;                   % number of datapoints
     xkg = reshape (xntg, [kmax gmax]);
     ykg = reshape (yntg, [kmax gmax]);
+    
+    fprintf ("The order of genes is:\n"); disp ( [(1:numel(geneNames))' geneNames] ); 
+    gTarget = input ("Which gene's ON/OFF states to plot (enter a number)? ");
+    
     yk = ykg(:,gTarget);
     
     imageSize = 250.;
     scal = imageSize*.8;
     
 elseif (choice==4)
-    %======== EXAMPLE 3 ==================================================
+    %======== EXAMPLE 4 ==================================================
     % PREPARE DATAPOINTS xkg AND CLASSES yk: ESPER DATA
-    % (INCOPMLETE)
-     
-    gTarget = input ("Which gene's ON/OFF states to plot (1-12)? ");
-    
-    
-    [xntg tt nucleusNames geneNames] = loadStdGeneExprFiles("xntg.txt", "tn.txt");
-    %geneNames = {'H', 'K', 'G', 'N', 'B', 'C', 'T'};
-    [yntg] = loadMDA ("esper_yntg.mda");
-    
 
+    [xntg tt nucleusNames geneNames] = loadStdGeneExprFiles("xntg.txt", "tn.txt");
+    [yntg] = loadMDA ("esper_yntg.mda");
     [nmax tmax gmax] = size (xntg);     % number of nuclei, timepts, genes
     kmax = nmax*tmax;                   % number of datapoints
     xkg = reshape (xntg, [kmax gmax]);
     ykg = reshape (yntg, [kmax gmax]);
+    
+    fprintf ("The order of genes is:\n"); disp ( [(1:numel(geneNames))' geneNames] ); 
+    gTarget = input ("Which gene's ON/OFF states to plot (enter a number)? ");
+    
     yk = ykg(:,gTarget);
     
-    imageSize = 2.;
+    imageSize = 1.;
     scal = imageSize*.8;
    
 else
@@ -165,7 +163,7 @@ fprintf ('Classification boundary normal Tg = \n'); disp (Tg);
 
 %======== PERFORM MODIFIED PRINCIPAL COMPONENT ANALYSIS (MPCA)
 % Columns of UggPrime are principal directions
-[UggPrime, xkgPrime] = mpca (xkg, yk, Tg, h);
+[UggPrime, xkgPrime] = mpca (xkg, yk, Tg);
 UgPrimeg = inv(UggPrime); % transformation from primed coords back to original coords
 
 
@@ -189,57 +187,30 @@ for k=1:kmax
     end
 end
 
+handleR3D = rotate3d; handleR3D.Enable = 'on'; rotate3d on;
 %======== VISUALIZE ORIGINAL DATA AS 3D SCATTER PLOT
 subplot (2,3,1); cla; hold on; grid on; set (gca,'DataAspectRatio', [1 1 1]);
-xticks (-15:5:15); yticks (-15:5:15); zticks (-15:5:15);
-ind = find (yk>0);
-plot3 (xkg(ind,1),xkg(ind,2),xkg(ind,3), 'o', 'Color', colorON);
-ind = find (yk<0);
-plot3 (xkg(ind,1),xkg(ind,2),xkg(ind,3), 'o', 'Color', colorOFF);
+scatter3 (xkg(:,1), xkg(:,2), xkg(:,3), 20, colors);
 title (sprintf ('3D Plot (Rotate Me!)'));
-rotate3d on; view (30, 15);
-xlabel (geneNames(1)); ylabel (geneNames(2)); zlabel (geneNames(3));
+view (30, 15);
+arrow3 (scal*[1 0 0], geneNames(1), 'black'); xlabel (geneNames(1));
+arrow3 (scal*[0 1 0], geneNames(2), 'black'); ylabel (geneNames(2));
+arrow3 (scal*[0 0 1], geneNames(3), 'black'); zlabel (geneNames(3));
 xlim ([-imageSize imageSize]);
 ylim ([-imageSize imageSize]);
 zlim ([-imageSize imageSize]);
-
-
-%======== VISUALIZE ORIGINAL DATA AS 2D SCATTER PLOT (A-B PLANE etc.)
-subplot (2,3,4); cla; hold on; grid on; set (gca,'DataAspectRatio', [1 1 1]);
-xlim ([-imageSize imageSize]); ylim ([-imageSize imageSize]);
-xticks (-15:5:15); yticks (-15:5:15);
-scatter (xkg(:,1), xkg(:,2), 20, colors);
-arrow (scal*[1 0], geneNames(1));
-arrow (scal*[0 1], geneNames(2));
-arrow (scal*UggPrime([1 2],1), "1");
-arrow (scal*UggPrime([1 2],2), "2");
-title ("Projection onto AB Plane");
-xlabel (geneNames(1)); ylabel (geneNames(2));
-
-subplot (2,3,5); cla; hold on; grid on; set (gca,'DataAspectRatio', [1 1 1]);
-scatter (xkg(:,1), xkg(:,3), 20, colors);
-xlabel ('Gene A'); ylabel ('Gene C');
-xlim ([-imageSize imageSize]); ylim ([-imageSize imageSize]);
-title (sprintf ('Projection onto AC Plane'));
-
-subplot (2,3,6); cla; hold on; grid on; set (gca,'DataAspectRatio', [1 1 1]);
-scatter (xkg(:,2), xkg(:,3), 20, colors);
-xlabel ('Gene B'); ylabel ('Gene C');
-xlim ([-imageSize imageSize]); ylim ([-imageSize imageSize]);
-title (sprintf ('Projection onto BC Plane'));
+%xticks (-15:5:15); yticks (-15:5:15); zticks (-15:5:15);
 
 %======== VISUALIZE DATA IN "PRINCIPAL" FRAME (3D SCATTER PLOT)
 subplot (2,3,3); cla; hold on; grid on; set (gca,'DataAspectRatio', [1 1 1]);
-xticks (-15:5:15); yticks (-15:5:15); zticks (-15:5:15);
 scatter3 (xkgPrime(:,1), xkgPrime(:,2), xkgPrime(:,3), 20, colors);
-xlabel ('1'); ylabel ('2'); zlabel ('3');
 title (sprintf ('Principal Coordinates (Rotate Me!)'));
-rotate3d on; view (30, 15);
-arrow3 (scal*[1 0 0], "1");
-arrow3 (scal*[0 1 0], "2");
-arrow3 (scal*[0 0 1], "3");
+view (30, 15);
+arrow3 (scal*[1 0 0], "1", 'red'); xlabel ('PD1');
+arrow3 (scal*[0 1 0], "2", 'red'); ylabel ('PD2'); 
+arrow3 (scal*[0 0 1], "3", 'red'); zlabel ('PD3');
 for f=1:gmax  % loop over transcription factors f that INFLUENCE gene g
-    arrow3 (scal*UgPrimeg([1 2 3], f), geneNames(f));
+    arrow3 (scal*UgPrimeg([1 2 3], f), geneNames(f), 'black');
 end
 xlim ([-imageSize imageSize]);
 ylim ([-imageSize imageSize]);
@@ -247,20 +218,64 @@ zlim ([-imageSize imageSize]);
 %---- Plot 2d decision boundary (line along y' axis)
 %line ([0 0], [-imageSize imageSize], 'LineStyle', '--', 'Color', 'black');
 %---- Plot 3d decision boundary (y'-z' plane)
-patch (imageSize*[0 0 0 0], imageSize*[1 -1 -1 1], imageSize*[1 1 -1 -1], ...
+x0 = -h/norm(Tg);               % distance of decision boundary from origin
+patch (...
+    [x0 x0 x0 x0], ...          % x' coordinates of rectangle
+    imageSize*[1 -1 -1 1], ...  % y' coordinates of rectangle
+    imageSize*[1 1 -1 -1], ...  % z' coordinates of rectangle
     [.5 .5 .5], 'FaceAlpha', .3);
 
+
+%======== VISUALIZE ORIGINAL DATA AS 2D SCATTER PLOT (A-B PLANE etc.)
+g1 = 1; g2 = 2;
+subplot (2,3,4); 
+cla; hold on; grid on; set (gca,'DataAspectRatio', [1 1 1]);
+xlim ([-imageSize imageSize]); ylim ([-imageSize imageSize]);
+scatter (xkg(:,g1), xkg(:,g2), 20, colors);
+arrow (scal*[1 0], geneNames(g1), 'black');
+arrow (scal*[0 1], geneNames(g2), 'black');
+arrow (scal*UggPrime([1 2],g1), "1", 'red');
+arrow (scal*UggPrime([1 2],g2), "2", 'red');
+title ("2D Projection");
+xlabel (geneNames(g1)); ylabel (geneNames(g2));
+setAllowAxesRotate (handleR3D, gca, false);  % don't allow rotating THIS
+
+g1 = 1; g2 = 3;
+subplot (2,3,5); 
+cla; hold on; grid on; set (gca,'DataAspectRatio', [1 1 1]);
+xlim ([-imageSize imageSize]); ylim ([-imageSize imageSize]);
+scatter (xkg(:,g1), xkg(:,g2), 20, colors);
+arrow (scal*[1 0], geneNames(g1), 'black');
+arrow (scal*[0 1], geneNames(g2), 'black');
+arrow (scal*UggPrime([1 2],g1), "1", 'red');
+arrow (scal*UggPrime([1 2],g2), "2", 'red');
+title ("2D Projection");
+xlabel (geneNames(g1)); ylabel (geneNames(g2));
+setAllowAxesRotate (handleR3D, gca, false);  % don't allow rotating THIS
+
+g1 = 2; g2 = 3;
+subplot (2,3,6); 
+cla; hold on; grid on; set (gca,'DataAspectRatio', [1 1 1]);
+xlim ([-imageSize imageSize]); ylim ([-imageSize imageSize]);
+scatter (xkg(:,g1), xkg(:,g2), 20, colors);
+arrow (scal*[1 0], geneNames(g1), 'black');
+arrow (scal*[0 1], geneNames(g2), 'black');
+arrow (scal*UggPrime([1 2],g1), "1", 'red');
+arrow (scal*UggPrime([1 2],g2), "2", 'red');
+title ("2D Projection");
+xlabel (geneNames(g1)); ylabel (geneNames(g2));
+setAllowAxesRotate (handleR3D, gca, false);  % don't allow rotating THIS
 return;
 
 %============================================================
 % NESTED UTILITY FUNCTIONS BELOW
 %============================================================
-    function arrow (dir, label)
-        quiver (0, 0, dir(1), dir(2), 'LineWidth', 1.5);
+    function arrow (dir, label, color)
+        quiver (0, 0, dir(1), dir(2), color, 'LineWidth', 1.5);
         text (1.05*dir(1), 1.05*dir(2), label, 'FontSize', 16, 'FontWeight', 'Bold');
     end
-    function arrow3 (dir, label)
-        quiver3 (0, 0, 0, dir(1), dir(2), dir(3), 'LineWidth', 1.5);
+    function arrow3 (dir, label, color)
+        quiver3 (0, 0, 0, dir(1), dir(2), dir(3), color, 'LineWidth', 1.5);
         text (1.05*dir(1), 1.05*dir(2), 1.05*dir(3), label, 'FontSize', 16, 'FontWeight', 'Bold');
     end
 
