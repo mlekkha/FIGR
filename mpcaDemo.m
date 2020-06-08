@@ -10,7 +10,7 @@ clc; fprintf ('\n============== mpcaDemo =====================\n');
 fprintf ('1. Toy model with datapoints in elliptical disk \n');
 fprintf ('2. Toy model with datapoints in ellipsoid \n');
 fprintf ('3. Fly dataset (HKGNBCT) \n');
-fprintf ('4. Esper dataset (12 genes + 1 external regulator) \n');
+fprintf ('4. ERYNEU dataset (12 genes + 1 external regulator) \n');
 choice = input ("Which of the above examples do you want to run (Enter a number)? ");
 if (choice==1)
     %======== EXAMPLE 1 ==================================================
@@ -130,7 +130,7 @@ elseif (choice==4)
     % PREPARE DATAPOINTS xkg AND CLASSES yk: ESPER DATA
 
     [xntg tt nucleusNames geneNames] = loadStdGeneExprFiles("xntg.txt", "tn.txt");
-    [yntg] = loadMDA ("esper_yntg.mda");
+    [yntg] = loadMDA ("eryneu_yntg.mda");
     [nmax tmax gmax] = size (xntg);     % number of nuclei, timepts, genes
     kmax = nmax*tmax;                   % number of datapoints
     xkg = reshape (xntg, [kmax gmax]);

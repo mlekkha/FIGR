@@ -5,13 +5,13 @@ clc;
 %======== READ EXPERIMENTAL TRAJECTORIES xntg(:,1,:) AND TIMEPOINTS tt =======
 [xntgEXPT tt nucleusNames geneNames] = loadStdGeneExprFiles("xntg.txt", "tn.txt");
 
-saveMDA ("esper_xntg.mda", xntgEXPT);
-saveMDA ("esper_tn.mda", tt);
+saveMDA ("eryneu_xntg.mda", xntgEXPT);
+saveMDA ("eryneu_tn.mda", tt);
 
 
 %======== READ VALUES OF OPTIONS p, v, and x THAT HAVE BEEN TUNED BY USER  =======
 % INDEX ORDER IS n, g, o (nucleus, gene, option index)
-pvxOpts_ngo = loadMDA ('esper_options.mda');
+pvxOpts_ngo = loadMDA ('eryneu_options.mda');
 
 %======== Define global structs for options and ODE options
 global opts;
@@ -46,7 +46,7 @@ numNuclei = size (xntgEXPT,1);
 %======== INFER GRN PARAMETERS grnFIGR
 [grnFIGR, diagnostics] = infer (opts, xntgEXPT, tt, numGenes);
 yntgEXPT = diagnostics.yntg;
-saveMDA ("esper_yntg.mda", yntgEXPT);
+saveMDA ("eryneu_yntg.mda", yntgEXPT);
 
 
 %======== RECOMPUTE TRAJECTORIES
