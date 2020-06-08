@@ -3,8 +3,10 @@ disp ('&&&&&&&&&&&&&&&&&& TOY MODEL &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&');
 disp ('  Run inference on many 2-gene networks                             ');
 disp ('  Write grnTOY.dat, grnCBI.dat, discrep.dat in appropriate directory');
 disp (' ');
-disp (' ');
 disp ('  For 2 genes, 1000 nuclei, each inference takes about 1 minute ');
+disp (' ');
+disp ('  Directory names: G6_N100_nt21_dt0.1_S100 means ');
+disp ('     6 genes, 100 nuclei, 21 timepoints, timestep dt=0.1, 100 samples (T-matrices)');
 disp (' ');
 disp ('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&');
 fprintf ('\n');
@@ -12,15 +14,22 @@ fprintf ('\n');
 %======== User-supplied pars
 rng (12345);            % seed the random number generator reproducibly
 %rng ();  				% seed the random number generator irreproducibly
-numGenes     = 10;     	% hardwired for now
+numGenes     = 12;     	% hardwired for now
+numNuclei    = 100;     % number of "nuclei" or "initial conds"
+numTimepoints = 21; 
+timestep      = 0.1;
 numTMatrices = 100;  	% number of different circuit parameters to simulate
-numNuclei    = 30;     % number of "nuclei" or "initial conds"
-tt = (0: 0.05: 2)';     % timepoints
+tt = (0:numTimepoints-1)' * timestep;
+
+%tt = (0: 0.05: 2)';     % 41 timepoints
+%tt = (0 : 0.05 : 0.5)';     % 11 timepoints, good way
+%tt = (0 : 0.05 : 1)';     % 21 timepoints, good way
+%tt = (0 : 0.05 : 0.5)';     % 11 timepoints, good way
 
 %======== Derived pars
 numExternals = 0;
 numRegs = numGenes;
-numTimepoints = numel (tt);
+numTimepoints = numel (tt);  % not really necessary
 
 opts.debug = 0;
 opts.slopethresh = .01;
@@ -31,12 +40,20 @@ opts.synthesisfunction = 'synthesis_heaviside';
 opts.ODEAbsTol = 1e-4;
 opts.ODEsolver = 'ode45';
 
-resultsDir = sprintf ('%dgenes_%dtmats_%dnuclei/', numGenes,numTMatrices,numNuclei);
+%resultsDir = sprintf ('%dgenes_%dtmats_%dnuclei_%dtimepts/', numGenes,numTMatrices,numNuclei,numTimepoints);
+resultsDir = sprintf ('G%d_N%d_nt%d_dt%g_S%d/', numGenes, numNuclei, numTimepoints, timestep, numTMatrices);
+if exist(resultsDir)
+    fprintf ('  ERROR: Directory %s already exists!', resultsDir);
+    fprintf ('  Use rm -R from commandline to cleanup previous data! \n');
+    return;
+end
+
 mkdir (resultsDir);
 fidGRNTOY = fopen ([resultsDir '/grnTOY.dat'], 'w');
 fidGRNCBI = fopen ([resultsDir '/grnCBI.dat'], 'w');
 fidDISCREP = fopen ([resultsDir '/discrep.dat'], 'w');
 
+tic;
 for m=1:numTMatrices
     fprintf ('======== Working on T-matrix no. m=%d ========\n', m);
     
@@ -87,6 +104,14 @@ for m=1:numTMatrices
     writeMatrix (fidGRNTOY, grnPACKED);
     writeMatrix (fidGRNCBI, grnCBIPACKED);
 end
+
+%======== WRITING TIMING INFO
+wallTime = toc;
+fprintf ('Time taken: %f\n', wallTime);
+dlmwrite ([resultsDir '/timing.dat'], wallTime);
+return;
+
+
 
 function writeMatrix (fileID, matrix)
 for r=1:size(matrix,1)
