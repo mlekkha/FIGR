@@ -3,7 +3,7 @@
 clc;
 
 %======== READ EXPERIMENTAL TRAJECTORIES xntg(:,1,:) AND TIMEPOINTS tt =======
-[xntgEXPT tt nucleusNames geneNames] = loadStdGeneExprFiles("xntg.txt", "tn.txt");
+[xntgEXPT tt nucleusNames geneNames] = loadNCBIFiles("xntg.txt", "tn.txt");
 
 saveMDA ("eryneu_xntg.mda", xntgEXPT);
 saveMDA ("eryneu_tn.mda", tt);

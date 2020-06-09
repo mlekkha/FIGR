@@ -129,7 +129,7 @@ elseif (choice==4)
     %======== EXAMPLE 4 ==================================================
     % PREPARE DATAPOINTS xkg AND CLASSES yk: ESPER DATA
 
-    [xntg tt nucleusNames geneNames] = loadStdGeneExprFiles("xntg.txt", "tn.txt");
+    [xntg tt nucleusNames geneNames] = loadNCBIFiles("xntg.txt", "tn.txt");
     [yntg] = loadMDA ("eryneu_yntg.mda");
     [nmax tmax gmax] = size (xntg);     % number of nuclei, timepts, genes
     kmax = nmax*tmax;                   % number of datapoints

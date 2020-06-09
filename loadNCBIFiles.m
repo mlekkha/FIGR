@@ -7,7 +7,7 @@
 %
 % See also:  loadMDA.m  saveMDA.m 
 %
-function [xntg,tt,nucleusNames,geneNames] = loadStdGeneExprFiles (fnameXNTG, fnameTN)
+function [xntg,tt,nucleusNames,geneNames] = loadNCBIFiles (fnameXNTG, fnameTN)
 
 %======== READ THREE-COLUMN FILE CONTAINING SAMPLE/TIME/NUCLEUS INFO
 fid = fopen (fnameTN, 'r');        %Opens File containing time points
