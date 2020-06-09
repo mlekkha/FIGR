@@ -83,7 +83,7 @@ elseif (choice==2)
     geneNames = ["A" "B" "C"]';
     center = [8.  5.  7.];       % center of multidim Gaussian distribution
     widths = [4.  3.  8.];       % widths of multidim Gaussian distribution
-    widthOfSigmoid = 0.2;        % width of sigmoid function
+    widthOfSigmoid = 0.2;        % width of sigmoid function (should be 0.2)
     offset = -3.0;               % imbalance parameter
     rotationMatrix = rot3d (80*pi/180.0, [1 1 1]);
     xkg = NaN (kmax, gmax);
@@ -109,9 +109,16 @@ elseif (choice==2)
 elseif (choice==3)
     %======== EXAMPLE 3 ==================================================
     % PREPARE DATAPOINTS xkg AND CLASSES yk: FLY DATA    
+
+    % in exmaple3-fly.m I added
+    %save ('fly-xntg.mat', 'xntgEXPT');
+    %save ('fly-yntg.mat', 'yntgEXPT');
+    %return;
+    % BEFORE RFNIMENT
+
     geneNames = ["H" "K" "G" "N" "B" "C" "T"]';
-    xntg = load('xntg.mat').xntg;       % note syntax
-    yntg = load('yntg.mat').yntg;
+    xntg = load('fly_xntg.mat').xntgEXPT;       % note syntax
+    yntg = load('fly_yntg.mat').yntgEXPT;
     [nmax tmax gmax] = size (xntg);     % number of nuclei, timepts, genes
     kmax = nmax*tmax;                   % number of datapoints
     xkg = reshape (xntg, [kmax gmax]);
