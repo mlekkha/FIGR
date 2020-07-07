@@ -1,16 +1,14 @@
 %
-% LOAD "STANDARD-FORMAT" (ESPER FORMAT) GENE EXPRESSION FILE 
-% AND TIMEPOINT FILE
-% Edited Yen Lee Loh 2020-6-4
-%
-% The standard format includes gene names.
+% LOAD GENE EXPRESSIONS, TIMEPOINTS, AND GENE NAMES FROM NCBI-FORMAT FILES
+% Edited Yen Lee Loh 2020-7-7
 %
 % See also:  loadMDA.m  saveMDA.m 
 %
-function [xntg,tt,nucleusNames,geneNames] = loadNCBIFiles (fnameXNTG, fnameTN)
+function [xntg,tt,nucleusNames,geneNames] = loadNCBIFiles (fnameXNTG,fnameTT)
 
 %======== READ THREE-COLUMN FILE CONTAINING SAMPLE/TIME/NUCLEUS INFO
-fid = fopen (fnameTN, 'r');        %Opens File containing time points
+fid = fopen (fnameTT, 'r');        %Opens File containing time points
+if (fid==-1) ; fprintf (2,'loadNCBI: fopen failed!\n') ; return ; end
 matrix = textscan (fid, '%s%s%s', 'Delimiter', '\t', 'HeaderLines', 1, 'MultipleDelimsAsOne', 1);
 fclose (fid);
 ss = strtrim (matrix{1,1});      % list of sample IDs for each sample s (whitespace removed!)
@@ -24,6 +22,7 @@ nmax = numel (nn); % number of unique nuclei
 
 %======== COMPARE SAMPLE NAMES BETWEEN TWO FILES
 fid = fopen(fnameXNTG , 'r');
+if (fid==-1) ; fprintf (2,'loadNCBI: fopen failed!\n') ; return ; end
 dummy = fgetl (fid);
 dummy = split (strtrim (dummy)); % split into strings
 ssFromMainFile = dummy(2:end);
@@ -65,4 +64,5 @@ end
 
 %======== FINALIZE RETURN-VALUES
 nucleusNames = string (nn);
+fprintf ('loadNCBIFiles: read xntg and tt from files %s and %s\n', fnameXNTG, fnameTT);
 end
