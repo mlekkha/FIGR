@@ -2,13 +2,23 @@
 
 clc;
 
+%======== READ NCBI FILES? =======
+%[xntgEXPT tt nucleusNames geneNames]    ...
+%= loadNCBIFiles("eryneu_xntg.txt", "eryneu_tt.txt");
+
+% CONVERT TO MDA FORMAT?
+%writematrix (geneNames, "eryneu_gnames.txt");
+%saveMDA ("eryneu_xntg.mda", xntgEXPT);  % this is really just optional
+%saveMDA ("eryneu_tt.mda", tt);          % this is really just optional
+
+% CONVERT TO PLAIN TEXT?  (NOT GOOD BECAUSE 3D ARRAYS NOT SUPPORTED)
+%writematrix (tt, 'eryneu_tt.mdatxt', 'FileType', 'text');
+%writematrix (xntgEXPT, 'eryneu_xntg.mdatxt', 'FileType', 'text');
+
 %======== READ EXPERIMENTAL TRAJECTORIES xntg(:,1,:) AND TIMEPOINTS tt =======
-[xntgEXPT tt nucleusNames geneNames]    ...
-= loadNCBIFiles("eryneu_xntg.txt", "eryneu_tt.txt");
-
-saveMDA ("eryneu_xntg.mda", xntgEXPT);  % this is really just optional
-saveMDA ("eryneu_tt.mda", tt);          % this is really just optional
-
+xntgEXPT  = loadMDA ('eryneu_xntg.mda');
+tt        = loadMDA ('eryneu_tt.mda');
+geneNames = readmatrix ('eryneu_gnames.txt', 'OutputType', 'string'); 
 
 %======== READ VALUES OF OPTIONS p, v, and x THAT HAVE BEEN TUNED BY USER  =======
 % INDEX ORDER IS n, g, o (nucleus, gene, option index)
@@ -120,17 +130,4 @@ for i=1:numel(a)
     end                             % consider index at next level
 end
 fclose (fid);
-end
-
-function phasePlot (xntgEXPT, xntgRECAL, geneNames)
-n1 = 1;
-g1 = 1;
-n2 = 2;
-g2 = 2;
-plot(xntgEXPT(n1,:,g1), xntgEXPT(n2,:,g2));
-xGene = geneNames(g1);
-yGene = geneNames(g2);
-xlabel("df")
-ylabel("df")
-%plot3(xntgEXPT(1,:,1), xntgEXPT(2,:,2), xntgEXPT(2,:,3));
 end

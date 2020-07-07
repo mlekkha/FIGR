@@ -53,7 +53,9 @@ grn.hg      = NaN (numGenes, 1);     % allocate
 grn.Rg      = NaN (numGenes, 1); % foolproofint
 grn.lambdag = NaN (numGenes, 1);
 grn.Dg      = NaN (numGenes, 1);
-yntg        = NaN (numNuclei, numTimepoints, numGenes+numExternals);
+
+yntg = NaN (numNuclei, numTimepoints, numGenes+numExternals);
+vntg = NaN (numNuclei, numTimepoints, numGenes+numExternals);
 
 
 for g = 1:numGenes
@@ -77,8 +79,11 @@ for g = 1:numGenes
             end           					% YLL 2018-10-2
         end
     end
-    yntg (:,:,g) = ynt;
     yk = reshape (ynt, numDatapoints, 1);
+    
+    
+    yntg (:,:,g) = ynt;  % SET OPTIONAL RETURN VALUES
+    vntg (:,:,g) = vnt;  % SET OPTIONAL RETURN VALUES
     
     %======== Do logistic regression (computeRegs)
     if size(unique(yk)) == 1
@@ -111,8 +116,6 @@ for g = 1:numGenes
     grn.Tgg(g,:) = Tg;
     grn.hg(g) = h;
     
-    diagnostics.yntg = yntg; % SET THIS AS AN OPTIONAL RETURNVALUE
-    
     if opts.debug > 0
         fprintf(1, ['Determining R, lambda, and D for %s ' ...
             'using the %s method \n'], ...
@@ -143,10 +146,13 @@ for g = 1:numGenes
 end  % end loop over gene (g)
 
 
-%======== Populate return value (struct of network parameters)
+%======== Populate mandatory return value (struct of gene network parameters)
 grn.Rg      = Rld_inferred(:,1);
 grn.lambdag = Rld_inferred(:,2);
 grn.Dg      = Rld_inferred(:,3);
+%======== Populate optional return value (struct of diagnostic parameters)
+diagnostics.yntg = yntg;
+diagnostics.vntg = vntg;
 return;
 
 
