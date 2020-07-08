@@ -65,15 +65,21 @@ xntg(:,:,numGenes+1:end) = 0.;
 [xntg] = computeTrajs (opts, grn, xntg, tt);
 
 
-%======== RUN FIGR
+
+
+%======== RUN infer
 [grnFIGR, diagnostics] = infer (opts, xntg, tt, numGenes);
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  FIGURE 1
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %======== VISUALIZE GENE STATES ========
 close all;
-figure ('Position', [0 0 800 800]); hold on;
+figure ('Position', [0 0 600 600]); hold on;
+set (gcf, 'name', 'Actual trajectories');
+title('Velocity of A (green $v>0$, red $v<0$)', 'interpreter','latex');
 xlabel ('$x_A$', 'interpreter', 'latex');
 ylabel ('$x_B$', 'interpreter', 'latex');
-title('Velocity of A (green $v>0$, red $v<0$)', 'interpreter','latex');
 axis ([0 1 0 1]);
 %======== Trajectories (curves) ========
 %plot (squeeze (xntg(:,:,1))', squeeze (xntg(:,:,2))', 'color', [.4 .4 .4]); %gray
@@ -95,7 +101,56 @@ for k=1:kmax
 end
 scatter (xkg(:,1), xkg(:,2), markerSizes, markerColors, 'filled');
 
+
+
+
+
+return;
+
+
+% BELOW: DEAD CODE
+%
+%
+% The following is actually NOT what I want to do.
+% Rather, I want to take the ORIGINAL points x_kg
+% and use the MODEL (grnFIGR) to PREDICT the values of v at these points.
+% Needs some coding....
+%
+
 %======== RECOMPUTE TRAJECTORIES
-%[xntgRECAL] = computeTrajs (opts, grnFIGR, xntg, tt);
+[xntgRECAL] = computeTrajs (opts, grnFIGR, xntg, tt);
+
+%======== RERUN infer FOR THE PURPOSES OF GENERATING yntg AND vntg
+[grnDUMMY, diagnosticsRECAL] = infer (opts, xntgRECAL, tt, numGenes);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  FIGURE 2
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%======== VISUALIZE GENE STATES ========
+figure ('Position', [600 0 600 600]); hold on;
+set (gcf, 'name', 'Recomputed trajectories');
+title('Velocity of A (green $v>0$, red $v<0$)', 'interpreter','latex');
+xlabel ('$x_A$', 'interpreter', 'latex');
+ylabel ('$x_B$', 'interpreter', 'latex');
+axis ([0 1 0 1]);
+%======== Trajectories (curves) ========
+%plot (squeeze (xntg(:,:,1))', squeeze (xntg(:,:,2))', 'color', [.4 .4 .4]); %gray
+%======== Datapoints (filled circles) ========
+xkg = reshape (xntgRECAL, [kmax gmax]);
+ykg = reshape (diagnosticsRECAL.yntg, [kmax gmax]);
+vkg = reshape (diagnosticsRECAL.vntg, [kmax gmax]);
+gTarget = 1;
+markerSizes  = 100.0 * abs (vkg(:,gTarget)) .^ 0.5;  % bigger markers mean stronger vels
+markerColors = NaN (kmax, 3);
+for k=1:kmax
+    if (ykg(k,gTarget)>0) 
+        markerColors(k,:) = [0 .5 0]; % green = ON
+    elseif (ykg(k,gTarget)<0) 
+        markerColors(k,:) = [.7 0 0]; % red = OFF
+    else
+        markerColors(k,:) = [.5 .5 .5]; % gray = UNKNOWN
+    end
+end
+scatter (xkg(:,1), xkg(:,2), markerSizes, markerColors, 'filled');
 
 return;
