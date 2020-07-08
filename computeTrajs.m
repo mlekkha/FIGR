@@ -37,7 +37,7 @@ end
 numNuclei     = size (Xntg, 1);
 numTimepoints = size (Xntg, 2);
 numGenes      = numel (grn.Rg);
-numExternals  = size (Xntg,3) - numGenes;
+numExternals  = size (Xntg, 3) - numGenes;
 
 % declare vectors and matrices
 
