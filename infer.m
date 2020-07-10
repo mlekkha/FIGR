@@ -98,17 +98,16 @@ for g = 1:numGenes
             Tg = Beta(2:end);
             h = Beta(1);
         elseif(strcmp(opts.lm,'FIGRlogReg'))
+            % leave +1 alone, but change -1 to 0 in preparation for LogReg
             Beta = FIGRlogReg(xkg, max(yk,0), opts.lambda); % We get h,T1,T2,...,
             Tg = Beta(2:end);
             h = Beta(1); 
         elseif(strcmp(opts.lm,'lassoglm'))
-            [m, n] = size(xkg);
-            X = xkg;
-            X = [ones(m,1) X]; %% Add bias term
-            B = lassoglm(X, max(yk,0)); % We get h,T1,T2,...,
-            Beta = B(:,75);
-            Tg = Beta(2:end);
-            h = Beta(1);
+            % leave +1 alone, but change -1 to 0 in preparation for LogReg
+            % Alpha is set close to zero to run ridge regression. 
+            [Beta FitInfo] = lassoglm(xkg, max(yk,0), 'binomial', 'link', 'logit', 'Lambda', opts.lambda, 'Alpha', 0.000001); % We get h,T1,T2,...,
+            Tg = Beta(1:end);
+            h = FitInfo.Intercept;
         end
     end
     
