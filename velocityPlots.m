@@ -80,16 +80,11 @@ opts = struct(  'debug', 0, ...
     'pvxOpts_ngo', pvxOpts_ngo, ...
     'lm', 'glmfit'); % glmfit|FIGRlogReg|lassoglm
 
-% Comparing several toy datasets,
-% FIGRlogReg does not seem to work as well as glmfit....
-%
-%'lambda', 0.001, ...         % Joanna used 0.5, ...
-%
-%    'lm', 'FIGRlogReg'); % glmfit|FIGRlogReg|lassoglm
+%'lm', 'FIGRlogReg', 'lambda', 0.000);  % Joanna used lambda = 0.5,
+% 
+% FIGRlogReg is broken probably becasue the derivatives are wrong
 
 [grnFIGR, diagnostics] = infer (opts, xntg, tt, gmax);
-
-
 
 
 %======== EXTRACT GENE STATES yk AND VELOCITIES vk ========

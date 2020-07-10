@@ -37,6 +37,20 @@ axis ([0 10 -0.1 1.1]); hold on;
 plot (xkg, yk, 'bo');
 plot (xkg, ykFit, 'r*');
 xkgDense = 0:.01:10; plot (xkgDense, glmval (bg, xkgDense, 'logit'), 'r-');
+
+%======== USE JOANNA's FIGRlogReg()
+bg = FIGRlogReg (xkg, yk, 0.00);
+ykFit = computeModelPrediction (bg, xkg);
+
+fprintf ("Optimized model parameters from FIGRlogReg():  bg = \n") ; disp (bg);
+nexttile;
+title ('maximizeLogL()'); xlabel ('x'); ylabel ('y');
+axis ([0 10 -0.1 1.1]); hold on;  
+plot (xkg, yk, 'bo');
+plot (xkg, ykFit, 'r*');
+xkgDense = 0:.01:10; plot (xkgDense, glmval (bg, xkgDense, 'logit'), 'r-');
+
+
 return;
 
 %=====================================================
