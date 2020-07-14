@@ -78,9 +78,10 @@ opts = struct(  'debug', 0, ...
     'ODEAbsTol', 1e-5, ...      % originally 1e-3
     'ODEsolver', 'ode45', ...
     'pvxOpts_ngo', pvxOpts_ngo, ...
-    'lm', 'glmfit'); % glmfit|FIGRlogReg|lassoglm
+    'lm', 'FIGRlogReg', 'lambda', 0.001);  % Joanna used lambda = 0.5,
 
-%'lm', 'FIGRlogReg', 'lambda', 0.000);  % Joanna used lambda = 0.5,
+%'lm', 'glmfit'); % glmfit|FIGRlogReg|lassoglm
+
 % 
 % FIGRlogReg is broken probably becasue the derivatives are wrong
 
@@ -184,12 +185,14 @@ legend (handles, 'v_B > 0', 'v_B < 0');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %  FIGURE 3
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-mynorm          = norm( grn.Tgg(g,:) );   % normalize T_original
-grn.Tgg(g,:)    = grn.Tgg(g,:) / mynorm;
-grn.hg(g)       = grn.hg(g)    / mynorm;
-mynorm          = norm( grnFIGR.Tgg(g,:) );% normalize T_inferred
-grnFIGR.Tgg(g,:)    = grnFIGR.Tgg(g,:) / mynorm;
-grnFIGR.hg(g)       = grnFIGR.hg(g)    / mynorm;
+for g=1:gmax
+    mynorm          = norm( grn.Tgg(g,:) );   % normalize T_original
+    grn.Tgg(g,:)    = grn.Tgg(g,:) / mynorm;
+    grn.hg(g)       = grn.hg(g)    / mynorm;
+    mynorm          = norm( grnFIGR.Tgg(g,:) );% normalize T_inferred
+    grnFIGR.Tgg(g,:)    = grnFIGR.Tgg(g,:) / mynorm;
+    grnFIGR.hg(g)       = grnFIGR.hg(g)    / mynorm;
+end
 
 figure ('Position', [0 400 400 400], 'MenuBar', 'none'); hold on;
 axis (10*[-1 1 -1 1]); grid ON;
