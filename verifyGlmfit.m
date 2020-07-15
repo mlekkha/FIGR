@@ -46,7 +46,7 @@ plot (xkg, yk, 'bo', xkg, ykFit, 'r*');
 xkgDense = 0:.01:10; plot (xkgDense, glmval (bg, xkgDense, 'logit'), 'r-');
 
 %======== JOANNA'S FIGRlogReg() WITH LAMBDA=0.1
-bg = FIGRlogReg (xkg, yk, 0.2);                %!!!!!!!!!!
+bg = FIGRlogReg (xkg, yk, 0.354);                %!!!!!!!!!!
 ykFit = computeModelPrediction (bg, xkg);
 
 nexttile; axis ([0 10 -0.1 1.1]); hold on;
@@ -56,7 +56,7 @@ plot (xkg, yk, 'bo', xkg, ykFit, 'r*');
 xkgDense = 0:.01:10; plot (xkgDense, glmval (bg, xkgDense, 'logit'), 'r-');
 
 %======== MATLAB'S lassoglm(): LOGISTIC REGRESSION WITH LASSO REGULARIZATION
-[bg1 FitInfo] = lassoglm (xkg, yk, 'binomial', 'Lambda', 0.2/(2*9), 'Alpha', 1e-16, 'Standardize', false);        %!!!!!!!!!!
+[bg1 FitInfo] = lassoglm (xkg, yk, 'binomial', 'Lambda', 0.354/9, 'Alpha', 1e-16, 'Standardize', false);        %!!!!!!!!!!
 bg0 = FitInfo.Intercept;
 bg = [bg0 bg1]';
 
