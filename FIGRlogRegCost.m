@@ -13,6 +13,23 @@ function [J,grad] = FIGRlogRegCost(beta,xkg,y,lambda)
 % grad(i) is the partial derivative of the cost function J with respect to
 % beta parameters. Beta parameters correspond to T and h parameters in the 
 % gene circtui model. Here we are not regularizing the bias term.
+% 
+%
+% Manu 07/15/2020: Please note that the objective function below is related
+% to the one used by MATLAB's lassoglm() by a factor of 2 and the fact that
+% the regularization term is not scaled by the number of datapoints:
+%
+%           (2 / numDatapoints) * sum( - y .* log(h) - (1-y) .* log(1 - h) )
+%
+%           + lambda  * sum(beta(2:end).^2).
+%
+%
+% TTD: Fix the error in the gradient of the regularization term: should be
+% beta(i) not sum(beta(2:end)).
+
+
+
+
 
 numDatapoints = size(xkg,1);
 
