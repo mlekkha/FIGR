@@ -19,17 +19,17 @@ numDatapoints = size(xkg,1);
 h = sigmoid(xkg * beta);
 
 % Regularization with squared lambdas
-J = (1 / numDatapoints) * sum( - y .* log(h) - (1-y) .* log(1 - h) ) + (lambda / (2 * numDatapoints)) * sum(beta(2:end).^2);
+J = (2 / numDatapoints) * sum( - y .* log(h) - (1-y) .* log(1 - h) ) + (lambda / (2 * numDatapoints)) * sum(beta(2:end).^2);
 
 % Allocation for partial derivatives
 grad = zeros(size(beta, 1), 1);
 
 % Derivative for the bias term
-grad(1) = sum(xkg(:,1).*(h - y))/numDatapoints;
+grad(1) = (2 / numDatapoints) * sum(xkg(:,1).*(h - y));
 
 % Derivatives for beta_1 to beta_numParams
 for i = 2 : size(grad)
-    grad(i) = (1 / numDatapoints) * sum( (h - y)' * xkg(:, i) ) + (lambda / numDatapoints) * sum(beta(2:end));
+    grad(i) = (2 / numDatapoints) * sum( (h - y)' * xkg(:, i) ) + (lambda / numDatapoints) * sum(beta(2:end));
 end
 
 end

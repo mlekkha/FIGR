@@ -15,7 +15,7 @@ xkg = [ones(numDatapoints,1) xkg];     % /Prepend column of 1's for the bias ter
 initialBeta = zeros(numGenes+1, 1); % Add extra param for the bias term
 
 % YLL 2020-6-2: 'Display' = 'none' --> suppress details of fminunc
-options = optimset('GradObj', 'on', 'MaxIter', 400, 'Display', 'none');
+options = optimset('GradObj', 'on', 'MaxIter', 400, 'Display', 'iter');
 
 theta = fminunc(@(beta)FIGRlogRegCost(beta, xkg, y, lambda), initialBeta, options);
         
