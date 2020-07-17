@@ -12,7 +12,7 @@ function [J,grad] = FIGRlogRegCost(beta,xkg,y,lambda)
 
 % grad(i) is the partial derivative of the cost function J with respect to
 % beta parameters. Beta parameters correspond to T and h parameters in the 
-% gene circtui model. Here we are not regularizing the bias term.
+% gene circuit model. Here the bias term is left out from the regularization.
 % 
 %
 % Manu 07/15/2020: Please note that the objective function below is related
@@ -24,12 +24,6 @@ function [J,grad] = FIGRlogRegCost(beta,xkg,y,lambda)
 %           + lambda  * sum(beta(2:end).^2).
 %
 %
-% TTD: Fix the error in the gradient of the regularization term: should be
-% beta(i) not sum(beta(2:end)).
-
-
-
-
 
 numDatapoints = size(xkg,1);
 
@@ -46,7 +40,7 @@ grad(1) = sum(xkg(:,1).*(h - y))/numDatapoints;
 
 % Derivatives for beta_1 to beta_numParams
 for i = 2 : size(grad)
-    grad(i) = (1 / numDatapoints) * sum( (h - y)' * xkg(:, i) ) + (lambda / numDatapoints) * sum(beta(2:end));
+    grad(i) = (1 / numDatapoints) * sum( (h - y)' * xkg(:, i) ) + (lambda / numDatapoints) * beta(i);
 end
 
 end
