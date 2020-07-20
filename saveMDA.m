@@ -4,7 +4,7 @@
 function saveMDA (filename, a)
 delim = {'\t', '\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'};
 %delim = {' ', '\n', '\n', '\n', '\n', '\n', '\n', '\n', '\n'};
-fmtstr = '%.2f';
+fmtstr = '%.6f';
 dmax = ndims(a);
 cmaxd = size(a);
 fid = fopen (filename, 'w');
