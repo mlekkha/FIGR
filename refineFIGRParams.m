@@ -54,7 +54,7 @@ paramREF = nan (numel(grn.Tgg) + numel(grn.hg) + numel(grn.Rg) + ...
 
 numGenes = size(grn.Tgg, 1);
 
-xntgEXPT = reshape(xntgFLAT, 58, 9, 7);
+xntgEXPT = reshape(xntgFLAT, 2, 6, 13);
 
 [init_chisq, init_rms, fh_chisq, init_paramvec] = ...
                             initChiSquare(opts, grn, xntgEXPT, tt);

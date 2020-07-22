@@ -29,6 +29,9 @@ global opts;
 global ODEopts;
 global optimopts;
 
+%======== Start timer
+tic;
+
 %======== SET OPTIONS (see README.md for description) ========
 % NOTE: slopethresh, exprthresh, splinesmoothing are no longer used!
 % NOTE: Rld_tsafety also should be removed.
@@ -37,11 +40,11 @@ opts = struct(  'debug', 0, ...
     'slopethresh', NaN, ...
     'exprthresh', NaN, ...
     'splinesmoothing', NaN, ...
-    'Rld_tsafety', 3, ...       % should eventually ged rid
+    'Rld_tsafety', 0, ...       % should eventually ged rid
     'spatialsmoothing', 0.5, ...
     'minborder_expr_ratio', 0.01, ...
     'Rld_method', 'slope', ...
-    'synthesisfunction', 'synthesis_heaviside', ...
+    'synthesisfunction', 'synthesis_sigmoid_sqrt', ...
     'ODEAbsTol', 1e-3, ...
     'ODEsolver', 'ode45', ...
     'pvxOpts_ngo', pvxOpts_ngo, ...
@@ -60,10 +63,28 @@ yntgEXPT = diagnostics.yntg;
 saveMDA ("tcell-gustafsson-yntg.mda", yntgEXPT);
 
 
-%======== RECOMPUTE TRAJECTORIES
-[xntgRECAL] = computeTrajs (opts, grnFIGR, xntgEXPT, tt);
-  
+%======== REFINE GRN BY NELDER-MEAD ========
+xntgFLAT = reshape(xntgEXPT, 12, 13);
 
+% set optimization options for refinement
+packed_paramvec = packParams(grnFIGR, numGenes);
+optimopts = optimset( 'Display', 'Iter', ...
+                      'MaxFunEvals', 200*length(packed_paramvec), ...
+                      'MaxIter', 200*length(packed_paramvec));
+                        
+% Refine parameters
+grnREF = refineFIGRParams(grnFIGR, xntgFLAT, tt);
+
+
+%======== Print status
+disp ('Nelder-Mead refinement complete... ');
+
+%======== Print time taken
+fprintf(1, 'Total time elapsed: %f\n', toc);
+
+%======== RECOMPUTE TRAJECTORIES
+[xntgRECAL] = computeTrajs (opts, grnREF, xntgEXPT, tt);
+  
 
 close all;
 figure('Units', 'inches', 'Position', [0 0 8.5 5.75]);
