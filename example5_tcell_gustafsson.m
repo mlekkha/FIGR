@@ -16,13 +16,13 @@ clc;
 %writematrix (xntgEXPT, 'eryneu_xntg.mdatxt', 'FileType', 'text');
 
 %======== READ EXPERIMENTAL TRAJECTORIES xntg(:,1,:) AND TIMEPOINTS tt =======
-xntgEXPT  = loadMDA ('eryneu_xntg.mda');
-tt        = loadMDA ('eryneu_tt.mda');
-geneNames = readmatrix ('eryneu_gnames.txt', 'OutputType', 'string'); 
+[xntgEXPT,tt,nucleusNames,geneNames] = ...
+                loadNCBIFiles ('tcell-gustafsson-xntg.txt', ...
+                               'tcell-gustafsson-tt.txt');
 
 %======== READ VALUES OF OPTIONS p, v, and x THAT HAVE BEEN TUNED BY USER  =======
 % INDEX ORDER IS n, g, o (nucleus, gene, option index)
-pvxOpts_ngo = loadMDA ('eryneu_options.mda');
+pvxOpts_ngo = loadMDA ('tcell-gustafsson-options.mda');
 
 %======== Define global structs for options and ODE options
 global opts;
@@ -41,7 +41,7 @@ opts = struct(  'debug', 0, ...
     'spatialsmoothing', 0.5, ...
     'minborder_expr_ratio', 0.01, ...
     'Rld_method', 'slope', ...
-    'synthesisfunction', 'synthesis_sigmoid_sqrt', ...
+    'synthesisfunction', 'synthesis_heaviside', ...
     'ODEAbsTol', 1e-3, ...
     'ODEsolver', 'ode45', ...
     'pvxOpts_ngo', pvxOpts_ngo, ...
@@ -57,7 +57,7 @@ numNuclei = size (xntgEXPT,1);
 %======== INFER GRN PARAMETERS grnFIGR
 [grnFIGR, diagnostics] = infer (opts, xntgEXPT, tt, numGenes);
 yntgEXPT = diagnostics.yntg;
-saveMDA ("eryneu_yntg.mda", yntgEXPT);
+saveMDA ("tcell-gustafsson-yntg.mda", yntgEXPT);
 
 
 %======== RECOMPUTE TRAJECTORIES
@@ -104,7 +104,7 @@ for g=1:numGenes
     end
 end
 
-filename = 'FIGR_Tmatrix.txt';
+filename = 'tcell-gustafsson-Tmatrix.txt';
 saveTMatrix (filename, grnFIGR.Tgg, geneNames);
 
 
