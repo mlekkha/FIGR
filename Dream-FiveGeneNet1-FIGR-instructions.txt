@@ -1,0 +1,47 @@
+This is for team 1: Neyda and Ashland
+
+These are instructions for applying FIGR to the synthetic five gene network
+problem of the DREAM challenge benchmark (see
+DREAM-FiveGeneNet1-Description.pdf).  I have created a branch called "reu2"
+in the FIGR repository containing both the data and the code.
+
+
+1. Switch to the reu2 branch:
+    A. cd <your FIGR repository directory>
+    B. git pull github reu2
+    B. git checkout reu2
+
+
+2. Start FigrApp.mlapp and load the files dream-fivegenenet1-xntg.txt and
+dream-fivegenenet1-tt.txt in the expression data file name and timepoint file
+name fields respectively. Load the data by clicking the "Load Files"
+button.
+
+3. Use the interface to choose appropriate values. There is only one
+condition. Note that gene expression is oscillative in time, so the
+undulations are real and not noise. Hint - you might have to choose a high
+pSmoothing parameter such 0.5.
+
+4. Save the options as EXACTLY this filename: dream-fivegenenet1-options.mda
+using the "Save options..." button.
+
+5. In the MATLAB command window start FIGR by typing
+example6_dream_fivegenenet1 and hitting Enter/Return. This will take about
+5 minutes to run.
+
+6. The script will save the results in two files: dream-fivegenenet1-fits.pdf
+and dream-fivegenenet1-Tmatrix.txt.
+
+7. In your presentation you should show the fits in the PDF file (points
+are experimental data and the line is computer simulation) and discuss how
+the model's output compares to the data. 
+
+8. You should also interpret the T matrix (in
+dream-fivegenenet1-Tmatrix.txt)
+- the rows are targets and the columns are regulators. The "Gold Standard"
+  or the "ground truth" connections are given in
+  GoldStandard_DIRECTED-SIGNED_EXCITATORY_FiveGene_qPCR.txt and
+  GoldStandard_DIRECTED-SIGNED_INHIBITORY_FiveGene_qPCR.txt in the
+  subdirectory FiveGeneNet1 of the FIGR repository directory. Please
+  comment on how many FIGR got right and how many FIGR got wrong.
+
