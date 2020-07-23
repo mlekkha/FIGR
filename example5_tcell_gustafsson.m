@@ -125,8 +125,12 @@ for g=1:numGenes
     end
 end
 
+% save T matrix
 filename = 'tcell-gustafsson-Tmatrix.txt';
 saveTMatrix (filename, grnFIGR.Tgg, geneNames);
+
+% save the plots
+exportgraphics(gcf,'tcell-gustafsson-fits.pdf','BackgroundColor','none');
 
 
 function saveTMatrix  (filename, a, geneNames)
