@@ -1,0 +1,12 @@
+SampleID	Time	Position
+Time0	0	8226
+Time5	5	8226
+Time10	10	8226
+Time15	15	8226
+Time20	20	8226
+Time25	25	8226
+Time30	30	8226
+Time35	35	8226
+Time40	40	8226
+Time45	45	8226
+Time50	50	8226
