@@ -1,4 +1,4 @@
-This is for team 1: Neyda and Ashland
+This is for team 2: Jean and Courtney
 
 These are instructions for applying FIGR to the synthetic five gene network
 problem of the DREAM challenge benchmark (see
