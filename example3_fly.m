@@ -59,7 +59,10 @@ disp ('FIGR complete... ');
 disp ('Starting refinement... ');
 
 %======== REFINE GRN BY NELDER-MEAD ========
-xntgFLAT = reshape(xntgEXPT, 522, 7);
+numExternalRegulators = 3;
+numNuclei = 58;
+numTimepoints = 9;
+xntgFLAT = reshape(xntgEXPT, numNuclei*numTimepoints, numGenes+numExternalRegulators);
 
 % set optimization options for refinement
 packed_paramvec = packParams(grnFIGR, numGenes);
@@ -71,7 +74,7 @@ optimopts = optimset( 'Display', 'Iter', ...
 % otherwise run interpreted (but slower) MATLAB .m code
 if (exist('refineFIGRParams_mex') == 3)
     disp('MEX file for refinement found. Running compiled code...');
-    grnREF = refineFIGRParams_mex(grnFIGR, xntgFLAT, tt);
+    grnREF = refineFIGRParams_mex(grnFIGR, xntgFLAT, tt, numGenes+numExternalRegulators, numNuclei);
 else
     fprintf(1, ['MEX file for refinement ' ...
     '(refineFIGRParams_mex.{mexa64/mexmaci64/mexw64})' ...
