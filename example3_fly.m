@@ -80,7 +80,7 @@ else
     '(refineFIGRParams_mex.{mexa64/mexmaci64/mexw64})' ...
     ' not found.\n See README.md for instructions for compiling the ' ...
     ' MEX file.\n\n Running interpreted (but slower) .m code...']);
-    grnREF = refineFIGRParams(grnFIGR, xntgFLAT, tt);
+    grnREF = refineFIGRParams(grnFIGR, xntgFLAT, tt, numGenes+numExternalRegulators, numNuclei);
 end    
 
 
