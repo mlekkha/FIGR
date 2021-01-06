@@ -109,7 +109,7 @@ if (numExternals > 0)
     
 else
     
-    ExtInpInterp.tt = 0;
+    ExtInpInterp.tt = tt*0;
     ExtInpInterp.xk_ext_dat = 0;
     
 end % from if (numExternals > 0)
