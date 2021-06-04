@@ -22,7 +22,7 @@ clc;
 
 %======== READ VALUES OF OPTIONS p, v, and x THAT HAVE BEEN TUNED BY USER  =======
 % INDEX ORDER IS n, g, o (nucleus, gene, option index)
-pvxOpts_ngo = loadMDA ('tcell-gustafsson-options.mda');
+pvxOpts_ngo = loadMDA ('tcell_options_06_02_21_1.mda');
 
 %======== Define global structs for options and ODE options
 global opts;

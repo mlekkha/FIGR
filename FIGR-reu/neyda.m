@@ -25,7 +25,8 @@ Dg = grn.Dg;
                 for t=1:numTimepoints
 
                     if strcmp(opts.synthesisfunction, 'synthesis_sigmoid_sqrt')
-                        y(n,t,g) = synthesis_sigmoid_sqrt(Tgf(g,:) *  xntg' + hg(g));
+                        xntg = reshape(xntgEXPT(n,t,:), [1, size(xntgEXPT,3)]); %reshape to concatonate into a vector
+                        y(n,t,g) = synthesis_sigmoid_sqrt(Tgf(g,:) *  xntg' + hg(g)); 
                     elseif strcmp(opts.synthesisfunction, 'synthesis_heaviside')                   
                         xntg = reshape(xntgEXPT(n,t,:), [1, size(xntgEXPT,3)]); %reshape to concatonate into a vector
                         y(n,t,g) = synthesis_heaviside(Tgf(g,:) *  xntg' + hg(g)); 
@@ -44,8 +45,8 @@ Dg = grn.Dg;
 yntgEXPT(yntgEXPT == -1) = -2;
 yntgEXPT(yntgEXPT == 1) = 2;
 yntgEXPT(yntgEXPT == 0) = 3;
-y(y == 0) = -2;
-y(y == 1) = 2;
+y(y == 0) = -1.5;
+y(y == 1) = 1.5;
 
 close all;
 figure('Units', 'inches', 'Position', [0 0 8.5 5.75]);

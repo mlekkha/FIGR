@@ -43,7 +43,7 @@ opts = struct(  'debug', 0, ...
     'Rld_tsafety', 0, ...       % should eventually ged rid
     'spatialsmoothing', 0.5, ...
     'minborder_expr_ratio', 0.01, ...
-    'Rld_method', 'slope_nodiff', ...
+    'Rld_method', 'conc', ...
     'synthesisfunction', 'synthesis_heaviside', ...
     'ODEAbsTol', 1e-3, ...
     'ODEsolver', 'ode45', ...
@@ -75,9 +75,6 @@ saveMDA ("tcell-gustafsson-yntg.mda", yntgEXPT);
 % grnREF = refineFIGRParams(grnFIGR, xntgFLAT, tt);
 
 grnREF = grnFIGR;
-
-%======== Print status
-disp ('Nelder-Mead refinement complete... ');
 
 %======== Print time taken
 fprintf(1, 'Total time elapsed: %f\n', toc);
@@ -154,7 +151,11 @@ for i=1:numel(a)
     fprintf (fid, fmtstr, a(i));      % print array element
     for d=1:dmax
         fprintf (fid, delim{d});    % print delimiter
-        idx(d) = idx(d)+1;          % increment index
+        idx(d) = idx(d)+1;          % in
+        
+        
+        
+      crement index
         if (idx(d) <= cmaxd(d)); break; end;
         idx(d) = 1;                 % restart index at 1
     end                             % consider index at next level
