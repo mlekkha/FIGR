@@ -133,6 +133,8 @@ for g = 1:numGenes
             Rld_inferred(g,:) = infer_Rl_from_conc(g);
         case 'kink'
             Rld_inferred(g,:) = infer_Rld_kink_approx(g);
+        case 'deriv'
+            Rld_inferred(g,:) = infer_Rl_from_deriv(g);
         otherwise
             error('Unknown method for inferring R, lambda, and D %s',...
                 opts.Rld_method);
@@ -889,6 +891,115 @@ return;
         
         
     end % from infer_Rld_from_slope()
+
+    % Manu 06/11/2021: Joanna's function to infer R and lambda by fitting
+    % piecewise constant differential equations
+    % JEH
+    
+    function kinetic_params = infer_Rl_from_deriv(g)
+        
+        %======== INFER the kinetic parameters (R and lambda)
+        %======== Joanna's function to infer R and lambda by fitting
+        %======== piecewise constant differential equations
+        %========                
+        %========                dx(t)/dt = R*y(t) - lambda*x(t)
+        %======== 
+        %======== where, x(t) is the concentration of the gene product 
+        %======== at time t and y(t) is the ON/OFF state of the gene at 
+        %======== time t. Once the spline inference has been perfomed, 
+        %======== the matrix yntg() holds y(t).
+
+        % fit spline to ON/OFF gene states using in DE solving
+        for n=1:numNuclei
+            Ind=find(yntg(n,:,g)==-1);
+            for k=Ind
+                yntg(n,k,g)=0; % swap -1 to 0
+            end
+            ySpline(n,:) = csaps (tt, yntg(n,:,g), 1); % Fit spline to trajectory
+        end
+
+        % declare optimization options for fminsearch
+        optimopts = optimset( 'Display', 'Iter', ...
+                      'MaxFunEvals', 1000, ...
+                      'MaxIter', 1000);
+                  
+        % "declare vectors/matrices"
+        % declare R and lambda for gene g
+        Rld_inferred(g,:) = infer_Rld_from_slope(g);
+        init_paramvec = [Rld_inferred(g,1) Rld_inferred(g,2)];
+        
+        init_paramvec = [1 1];
+   
+        % return the function handle to getChiSquare
+        fh_chisq = @getChiSquare;
+        
+        %init_chisq = fh_chisq(init_paramvec)
+
+        % call fminsearch to find the best R and lambda in
+        % dx/dt = R * y(t) - lambda * x
+        % where y is the fitted spline to the ON/OFF state of a gene g
+        [paramREF,scoreREF,exitflag,output] = ...
+                            fminsearch(fh_chisq,init_paramvec,optimopts);
+        
+        % obtain R and lambda from fminsearch and 
+        % store the results to kinetic_params
+        kinetic_params(1) = paramREF(1);
+        kinetic_params(2) = paramREF(2);
+        kinetic_params(3) = 0;
+       
+        % Create ODE and calculate chi-square between
+        % the estimated gene expression based on the inferred R and lambda 
+        % params and the experimental data.
+        function chisq = getChiSquare(paramvec)
+            
+            % extract expression for gene g and all timepoints and nuclei
+            % reshape so expressions are concatenated into
+            % numTimepoints*numNuclei X 1 vector
+            Xntg = reshape(xntg(:,:,g)', 1, numTimepoints*numNuclei);
+
+            % ODE builder function
+            fh_roc = @getRateofChange;
+        
+            % set ODE opts
+            ODEopts = odeset('AbsTol', 1e-3);
+
+            % solve; note that in the returned solution, time varies with row not
+            % with column as in Xkt
+            % first column of Xkt contains gene expressions at first
+            % timepoint for concatenated nuclei
+            if strcmp(opts.ODEsolver, 'ode45')
+                [tts, xtk] = ode45(fh_roc, tt, xntg(:,1,g), ODEopts);
+            elseif strcmp(opts.ODEsolver, 'ode23')
+                [tts, xtk] = ode23(fh_roc, tt, xntg(:,1,g), ODEopts);
+            else
+                error('Unknown solver %s',...
+                            opts.ODEsolver);
+            end
+            
+            xntgEXPT = xntg(:,:,g);
+            xntgMODEL = xtk';
+
+            % Comment out for now
+            % Compute chi-square. Exclude the first timepoint, since it is the
+            % initial condition - FIXME
+            diff = xntgEXPT - xntgMODEL;
+            diff = reshape(diff,1, numNuclei*numTimepoints); 
+            chisq = sum(diff.^2);
+
+            % Construct ODE for R and lambda estimates. Apply penalty if
+            % lambda gets negative values.
+            function v = getRateofChange(t, Xkt)
+                for n=1:numNuclei
+                    %v(n) = paramvec(1) .* fnval(ySpline(n,:), t) - paramvec(2) .* Xkt(n);
+                    v(n) = paramvec(1) .* fnval(ySpline(n,:), t) - paramvec(2) .* Xkt(n) + ...
+                    10^4 * any(paramvec(2) <= 0.0);  
+                end
+                v = v';
+            end
+
+    end % from getChiSquare()
+        
+    end % from infer_Rl_from_deriv
 
 end % from infer()
 
