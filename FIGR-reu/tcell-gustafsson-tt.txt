@@ -1,0 +1,13 @@
+SampleID	Time	Position
+Th2-0h	0	8227
+Th2-6h	6	8227
+Th2-1d	24	8227
+Th2-3d	72	8227
+Th2-6d	144	8227
+Th2-8d	192	8227
+Naive-0h	0	8226
+Naive-6h	6	8226
+Naive-1d	24	8226
+Naive-3d	72	8226
+Naive-6d	144	8226
+Naive-8d	192	8226
